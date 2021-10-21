@@ -1,0 +1,4 @@
+
+function init(self)
+	go.set_scale(.5)
+end

@@ -1,0 +1,15 @@
+
+function init(self)
+	--go.set_scale(0.5)
+	sprite.set_constant("#BG", "tint", vmath.vector4(.4, .42, .44, 1))
+	sprite.set_constant("#outline", "tint", vmath.vector4(0,0,0,1))
+end
+
+
+
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("collision_response") then
+		print("OK")
+	end
+end
