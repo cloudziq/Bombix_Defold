@@ -1,6 +1,17 @@
 
-local tile_size = 64
-local board_data = {}
+local tile_size = 64  -- in pixels
+local board_data = {}  --[tile_x][tile_y][ [tile_id, digit_id], tile_state, bomb_counter]
+local x_def, y_def
+
+
+-- max board size: 10x16
+local board_tiles_x = 10
+local board_tiles_y = 16
+local bombs_amount  = 20
+
+
+-- local functions:
+local reveal_tiles
 
 
 
@@ -8,7 +19,7 @@ local board_data = {}
 function init(self)
 	msg.post(".", "acquire_input_focus")
 	math.randomseed(socket.gettime())
-	prepare_board(10, 10, 20)
+	prepare_board(board_tiles_x, board_tiles_y, bombs_amount)
 end
 
 
@@ -17,17 +28,72 @@ end
 function on_input(self, action_id, action)
 	if action_id == hash("touch") and action.pressed then
 		factory.create("#touch_factory", vmath.vector3(action.x, action.y, 1))
-		--factory.create("#touch_factory")
+		tile_num_x = math.ceil((action.x - (window_w - (board_tiles_x * tile_size)) / 2) / tile_size)
+		tile_num_y = math.ceil((action.y - (window_h - (board_tiles_y * tile_size)) / 2) / tile_size)
 	end
 end
 
 
 
 
--- board data:
--- 0: empty
--- 1: bomb
--- 2: flag
+function check_clicked_tile(x, y, sender)
+	local tile = board_data[x][y][2]
+
+	if tile == 0 then
+		reveal_tiles(x, y, {})
+	elseif tile >= 2 then
+		print("BOMB! you died")
+	end
+end
+
+
+
+
+--local neighbours = {{0, -1}, {-1, 0}, {1, 0}, {0, 1}}
+local near_coords = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}}
+
+function reveal_tiles(x, y, neighbours_table)
+	local cx, cy
+	board_data[x][y][2] = 1
+
+	for index, value in ipairs(near_coords) do
+		cx = x + value[1]
+		cy = y + value[2]
+
+		if (cx >= 1 and cx <= board_tiles_x) and (cy >= 1 and cy <= board_tiles_y) then
+			if board_data[x][y][3] == 0 then
+				local tile = board_data[cx][cy][2]
+				if board_data[x][y][3] == 0 and board_data[cx][cy][2] < 3 then
+					table.insert(neighbours_table, {cx, cy})
+				end
+			else
+				msg.post(board_data[x][y][1][2], "reveal digit")
+			end
+		end
+	end
+
+	msg.post(board_data[x][y][1][1], "reveal tile")
+
+	-- process neighbours:
+	for index, _ in ipairs(neighbours_table) do
+		local x = neighbours_table[index][1]
+		local y = neighbours_table[index][2]
+		-- process only unrevealed tiles
+		if board_data[x][y][2] == 0 then
+			reveal_tiles(x, y, neighbours_table)
+		end
+	end
+end
+
+
+
+
+-- board states:
+-- 0: unrevealed
+-- 1: empty  -- it's needed?
+-- 2: empty + flag
+-- 3: bomb
+-- 4: bomb + flag
 
 function prepare_board(width, height, bomb_amount)
 	local x_def = (window_w - (width * tile_size)) / 2
@@ -37,28 +103,62 @@ function prepare_board(width, height, bomb_amount)
 	for a = 1, width do
 		table.insert(board_data, {})
 		for b = 1, height do
-			board_data[a][b] = 0
+			local id = factory.create("#tile_factory", vmath.vector3(x, y, .01))
+			board_data[a][b] = {{id, nil}, 0, 0}
+			y = y + tile_size
 		end
-	end
-
-	for a = 1, width do
-		for b = 1, height do
-			factory.create("#tile_factory", vmath.vector3(x, y, 0))
-			x = x + tile_size
-		end
-		x = x_def
-		y = y + tile_size
+		y = y_def
+		x = x + tile_size
 	end
 
 
 	-- generate bombs:
 	x, y = gen_pos(width, height)
 	for bomb = 1, bomb_amount do
-		while board_data[x][y] == 1 do x, y = gen_pos(width, height) end
-		board_data[x][y] = 1
-		print("x = "..x.."  :  y = "..y)
-		factory.create("#bomb_factory", vmath.vector3(x_def + ((x - 1) * tile_size), y_def + ((y - 1) * tile_size), 1))
+		while board_data[x][y][2] == 3 do x, y = gen_pos(width, height) end
+		board_data[x][y][2] = 3
+		factory.create("#bomb_factory", vmath.vector3(x_def + ((x - 1) * tile_size), y_def + ((y - 1) * tile_size), 0))
 	end
+
+
+	-- generate numbers:
+	for x = 1, width do
+		for y = 1, height do
+			gen_num(x, y)
+		end
+	end
+end
+
+
+
+
+local near_coords = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}}
+
+function gen_num(x, y)
+	local counter, cx, cy = 0
+
+	for index, _ in ipairs(near_coords) do
+		cx = x + near_coords[index][1]
+		cy = y + near_coords[index][2]
+
+		if (cx >= 1 and cx <= board_tiles_x) and (cy >= 1 and cy <= board_tiles_y) then
+			if board_data[cx][cy][2] == 3 then
+				counter = counter + 1
+			end
+		end
+	end
+
+	if counter > 0 then
+		cx = ((window_w - (board_tiles_x * tile_size)) / 2) + ((x - 1) * tile_size)
+		cy = ((window_h - (board_tiles_y * tile_size)) / 2) + ((y - 1) * tile_size)
+		local id = factory.create("/main#counter_factory", vmath.vector3(cx, cy, 0))
+		label.set_text(msg.url(nil, id, "label"), tostring(counter))
+		board_data[x][y][1][2] = id
+	-- else
+	-- 	board_data[x][y][1][2] = 0
+	end
+
+	board_data[x][y][3] = counter
 end
 
 

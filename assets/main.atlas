@@ -1,12 +1,4 @@
 images {
-  image: "/assets/app_icons/icon_180.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
-  image: "/assets/background.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
   image: "/assets/tile_BG.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }

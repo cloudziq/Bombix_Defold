@@ -1,6 +1,13 @@
 
 function init(self)
-	timer.delay(0.1, false, function()
+	
+end
+
+
+
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("delete") then
 		go.delete()
-	end)
+	end
 end

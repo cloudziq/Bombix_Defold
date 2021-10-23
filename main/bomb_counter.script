@@ -1,0 +1,8 @@
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("reveal digit") then
+		local pos = go.get_position()
+		pos.z = 1
+		go.set_position(pos)
+	end
+end

@@ -49,3 +49,37 @@ scale = 0.01
 [sprite]
 max_count = 512
 
+[label]
+max_count = 160
+
+[particle_fx]
+max_count = 256
+max_particle_count = 12000
+
+[graphics]
+max_draw_calls = 128
+
+[collection]
+max_instances = 512
+
+[spine]
+max_count = 4
+
+[model]
+max_count = 4
+
+[mesh]
+max_count = 4
+
+[gui]
+max_count = 4
+
+[collectionfactory]
+max_count = 4
+
+[factory]
+max_count = 8
+
+[collection_proxy]
+max_count = 4
+
