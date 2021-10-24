@@ -53,7 +53,7 @@ max_count = 512
 max_count = 160
 
 [particle_fx]
-max_count = 256
+max_count = 300
 max_particle_count = 12000
 
 [graphics]

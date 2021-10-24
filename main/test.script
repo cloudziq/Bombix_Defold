@@ -1,9 +1,0 @@
-function init(self)
-	go.set_scale(.2)
-	local pos = go.get_position()
-	pos.x = pos.x + 32
-	pos.y = pos.y + 32
-	go.set_position(pos)
-	particlefx.play("#particles")
-	timer.delay(.1, false, function() go.delete() end)
-end

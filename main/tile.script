@@ -1,21 +1,44 @@
 
+local rotations = {0, 90}
+
+
+
+
 function init(self)
 	go.set_scale(.5)
-	sprite.set_constant("#BG", "tint", vmath.vector4(.2, .22, .24, 1))
-	sprite.set_constant("#outline", "tint", vmath.vector4(0,0,0,1))
+	sprite.set_constant("#tile_main", "tint", vmath.vector4(.2, .22, .24, 1))
+	sprite.set_hflip("#tile_main", math.random(1,2) == 2)
+	sprite.set_vflip("#tile_main", math.random(1,2) == 2)
+	go.set(".", "euler.z", rotations[math.random(1, 2)])
+
+	if theme_data[current_theme][2] == 1 then
+		sprite.play_flipbook("#tile_main", "tile"..current_theme)
+	else
+		sprite.play_flipbook("#tile_main", "tile"..current_theme.."_"..math.random(1, theme_data[current_theme][2]))
+	end
+
+	if theme_data[current_theme][3] ~= nil then
+		sprite.set_constant("#tile_border", "tint", vmath.vector4(0,0,0,1))
+	else
+		sprite.set_constant("#tile_border", "tint", vmath.vector4(0,0,0,0))
+	end
+
 end
 
 
 
 
 function on_message(self, message_id, message, sender)
+	local id
+
 	if message_id == hash("collision_response") then
 		msg.post(message.other_id, "delete")
-		check_clicked_tile(tile_num_x, tile_num_y, msg.url(nil, go.get_id(), nil))
+		check_clicked_tile(tile_num_x, tile_num_y)
 
 
 	elseif message_id == hash("reveal tile") then
-		sprite.set_constant("#BG", "tint", vmath.vector4(1,1,1,1))
-		factory.create("/main#tile_reveal_particle_factory")
+		sprite.set_constant("#tile_main", "tint", vmath.vector4(1,1,1,1))
+		id = factory.create("/main#tile_reveal_particle_factory")
+		msg.post(id, "play particles", {type = message.type})
 	end
 end

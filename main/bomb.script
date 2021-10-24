@@ -1,4 +1,21 @@
 
 function init(self)
 	go.set_scale(.5)
+	msg.post("#sprite", "disable")
+end
+
+
+
+
+function on_message(self, message_id, message)
+	if message_id == hash("collision_response") then
+		sound.play("/sound#explode"..math.random(1, 2), {speed = proxy_speed})
+		sound.play("/sound#explode_echo"..math.random(1, 2), {speed = proxy_speed, delay = .4})
+		go.set_scale(2)
+		particlefx.play("#particles")
+		go.delete()
+
+	elseif message_id == hash("reveal bomb") then
+		msg.post("#sprite", "enable")
+	end
 end

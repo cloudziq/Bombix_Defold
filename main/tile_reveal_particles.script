@@ -1,0 +1,14 @@
+
+function init(self)
+	go.set_scale(.2)
+	timer.delay(.1, false, function() go.delete() end)
+end
+
+
+
+
+function on_message(self, message_id, message)
+	if message_id == hash("play particles") then
+		particlefx.play("#tile_reveal"..message.type)
+	end
+end
