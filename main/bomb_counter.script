@@ -1,4 +1,12 @@
 
+function init(self)
+	msg.post(".", "disable")
+	timer.delay(2.2, false, function() msg.post(".", "enable") end)
+end
+
+
+
+
 function on_message(self, message_id, message, sender)
 	if message_id == hash("reveal digit") then
 		local pos = go.get_position()

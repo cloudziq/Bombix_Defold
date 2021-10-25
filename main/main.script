@@ -1,17 +1,19 @@
 
 -- name, variations, outline num
 theme_data = {
-	{"metal tiles", 1, 1},    -- 1
-	{"asphalt", 1, 1},        -- 2
-	{"clean tiles", 1, 1},    -- 3
-	{"cartoon", 3, 0},        -- 4
-	{"wooden", 4, 1},         -- 5
-	{"old bricks", 4, nil},   -- 6
-	{"marble", 1, 1},         -- 7
-	{"stones", 1 ,1}          -- 8
+	{"metal tiles", 1, 1},     -- 1
+	{"asphalt", 1, 1},         -- 2
+	{"clean tiles", 1, 1},     -- 3
+	{"cartoon", 3, 0},         -- 4
+	{"wooden", 4, 1},          -- 5
+	{"old bricks", 4, nil},    -- 6
+	{"marble", 1, 1},          -- 7
+	{"stones", 1 ,1},          -- 8
+	{"blue circles", 1, nil},  -- 9
+	{"rounded tile", 1, nil}   -- 10
 }
 
-current_theme = 6
+current_theme = 10
 
 
 
@@ -58,4 +60,27 @@ function on_message(self, message_id, message, sender)
 		msg.post(sender, "init")
 		msg.post(sender, "enable")
 	end
+end
+
+
+
+
+function gen_offscreen_pos(distance)
+	local a, x, y = math.random(1,4)
+
+	if a == 1 then     -- left
+		x = -distance
+		y = math.random(-distance, window_h + distance)
+	elseif a == 2 then -- right
+		x = window_w + distance
+		y = math.random(-distance, window_h + distance)
+	elseif a == 3 then -- down
+		x = math.random(-distance, window_w + distance)
+		y = -distance
+	elseif a == 4 then -- up
+		x = math.random(-distance, window_w + distance)
+		y = window_h + distance
+	end
+
+	return x, y
 end

@@ -7,17 +7,17 @@
 local board_data = {}  --[tile_x][tile_y][ [tile_id, digit_id, flag_id, bomb_id], tile_status, bomb_counter]
 
 
-
-local tile_size = 64   -- in pixels
+local tile_size  = 64   -- in pixels
 local tiles_left = 0
+local markers = 0
 local x_def, y_def
-local allow_board_input = true
+local allow_board_input = false
 
 
 -- max board size: 10x16
 local board_tiles_x = 10
 local board_tiles_y = 16
-local bombs_amount  = 12
+local bombs_amount  = 32
 
 
 -- local functions:
@@ -30,6 +30,10 @@ function init(self)
 	msg.post(".", "acquire_input_focus")
 	math.randomseed(socket.gettime())
 	prepare_board(board_tiles_x, board_tiles_y, bombs_amount)
+	msg.post("/gui#level", "show display", {bombs = bombs_amount, tiles = tiles_left})
+	timer.delay(2, false, function()
+		allow_board_input = true
+	end)
 end
 
 
@@ -80,15 +84,19 @@ function tile_marker(x, y)
 
 		if board_data[x][y][2] ~= 1 then
 			if id == 0 then
+				markers = markers + 1
 				local id = factory.create("#tile_marker_factory", vmath.vector3(cx, cy, .99))
 				board_data[x][y][1][3] = id
 				sound.play("/sound#tile_mark", {speed = 1.8})
 			else
+				markers = markers - 1
 				msg.post(id, "delete marker")
 				board_data[x][y][1][3] = 0
 				sound.play("/sound#tile_mark", {speed = 3.4})
 			end
 		end
+
+		msg.post("/gui#level", "update display", {type = "marker", amount = markers})
 	end
 end
 
@@ -103,6 +111,7 @@ function check_clicked_tile(x, y)
 		reveal_tiles(x, y, {})
 		sound.play("/sound#plumk", {gain = .4, speed = math.random(80, 120) / 100} )
 	elseif tile >= 2 then
+		msg.post(board_data[x][y][1][4], "detonate bomb")
 		game_over()
 	end
 end
@@ -117,6 +126,7 @@ function reveal_tiles(x, y, neighbours_table)
 
 	board_data[x][y][2] = 1
 	tiles_left = tiles_left - 1
+	msg.post("/gui#level", "update display", {type = "tile", amount = tiles_left})
 	if tiles_left == 0 then print("YOU WIN!") end
 
 	for index, value in ipairs(near_coords) do
