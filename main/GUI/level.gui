@@ -5,7 +5,7 @@ fonts {
 }
 textures {
   name: "bomb"
-  texture: "/assets/bomb.atlas"
+  texture: "/assets/bomb/bomb.atlas"
 }
 textures {
   name: "tiles"
@@ -58,7 +58,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "bomb/anim"
+  texture: "bomb/image001"
   id: "bomb icon"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE

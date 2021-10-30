@@ -1,0 +1,21 @@
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	sound.play("/sound#menu_music")
+end
+
+
+
+
+function on_message(self, message_id, message, sender)
+
+end
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") and action.pressed then
+		if gui.pick_node(gui.get_node("start_C"), action.x, action.y) then
+			msg.post("/main#ctrl", "start_game")
+			msg.post(".", "disable")
+		end
+	end
+end

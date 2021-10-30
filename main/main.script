@@ -1,49 +1,90 @@
 
--- name, variations, outline num
+-- "name", variations, outline, ON/OFF_variants
 theme_data = {
-	{"metal tiles", 1, 1},     -- 1
-	{"asphalt", 1, 1},         -- 2
-	{"clean tiles", 1, 1},     -- 3
-	{"cartoon", 3, 0},         -- 4
-	{"wooden", 4, 1},          -- 5
-	{"old bricks", 4, nil},    -- 6
-	{"marble", 1, 1},          -- 7
-	{"stones", 1 ,1},          -- 8
-	{"blue circles", 1, nil},  -- 9
-	{"rounded tile", 1, nil}   -- 10
+	{"metal tiles",     1, 1,   nil},    -- 1
+	{"asphalt",         1, 1,   nil},    -- 2
+	{"clean tiles",     1, 1,   nil},    -- 3
+	{"cartoon",         3, nil, nil},    -- 4
+	{"wooden",          4, 1,   nil},    -- 5
+	{"old bricks",      4, nil, nil},    -- 6
+	{"marble",          1, 1,   nil},    -- 7
+	{"stones",          1 ,1,   nil},    -- 8
+	{"blue circles",    1, nil, nil},    -- 9
+	{"rounded tile",    1, nil, nil},    -- 10
+	{"light tiles",     1, 1,   true}    -- 11
 }
+current_theme = 4
 
-current_theme = 10
+
+-- max board size: 10x16
+-- board_x, board_y, bombs
+level_data = {
+	{6,  6,  4},    -- 1
+	{6,  6,  1},    -- 2
+	{6,  7,  1},    -- 3
+	{6,  7,  1},    -- 4
+	{7,  7,  1},    -- 5
+	{7,  7,  1},    -- 6
+	{7,  8,  1},    -- 7
+	{7,  8,  1},    -- 8
+	{8,  8,  1},    -- 9
+	{8,  8,  1},    -- 10
+	{8,  9,  1},    -- 11
+	{8,  9,  1},    -- 12
+	{8,  10, 1},    -- 13
+	{8,  10, 1},    -- 14
+	{8,  11, 1},    -- 15
+	{8,  11, 1},    -- 16
+	{8,  12, 1},    -- 17
+	{8,  12, 1},    -- 18
+	{9,  13, 1},    -- 19
+	{9,  13, 1},    -- 20
+	{9,  14, 1},    -- 21
+	{9,  14, 1},    -- 22
+	{10, 14, 1},    -- 23
+	{10, 14, 1},    -- 24
+	{10, 15, 1},    -- 25
+	{10, 15, 1},    -- 26
+	{10, 16, 1},    -- 27
+	{10, 16, 1},    -- 28
+	{10, 16, 1},    -- 29
+	{10, 16, 1},    -- 30
+	{10, 16, 1},    -- 31
+	{10, 16, 1},    -- 32
+	{10, 16, 1},    -- 33
+	{10, 16, 1},    -- 34
+	{10, 16, 1},    -- 35
+}
+current_level = 30
+
 
 
 
 function init(self)
+	local temp_window_w, temp_window_h
+
 	local display = defos.get_displays()
 	local screen_w = display[1].bounds.width
 	local screen_h = display[1].bounds.height - 36
+
 	defos.disable_maximize_button()
 	defos.disable_window_resize()
+
+	window_w, window_h = 640, 1152
+	temp_window_w = window_w * 4 ; temp_window_h = window_h * 4
 
 	--screen_w = 1650 ; screen_h = 874  -- smaller window
 	--screen_w = 1650 ; screen_h = 600   -- for recording
 
-	window_w = 640 * 4 ; window_h = 1152 * 4
-
 	-- resize window if too big for display
-	if screen_h <= window_h then
-		local scale_ratio = window_h / (screen_h - 36)
-		window_w = window_w / scale_ratio
-		window_h = window_h / scale_ratio
+	if screen_h <= temp_window_h then
+		local scale_ratio = temp_window_h / (screen_h - 36)
+		temp_window_w = temp_window_w / scale_ratio
+		temp_window_h = temp_window_h / scale_ratio
 	end
 
-	defos.set_view_size((screen_w - window_w) / 2, ((screen_h - 36) - window_h) / 2, window_w, window_h)
-	window_w = 640 ; window_h = 1152
-
+	defos.set_view_size((screen_w - temp_window_w) / 2, ((screen_h - 36) - temp_window_h) / 2, temp_window_w, temp_window_h)
 	msg.post(".", "acquire_input_focus")
-	msg.post("@render:", "refresh_window_size")
-	msg.post("@render:", "use_fixed_fit_projection", {near = -1, far = 1})
-
-	msg.post("#game", "load")
 end
 
 
@@ -56,9 +97,12 @@ function on_message(self, message_id, message, sender)
 
 	elseif message_id == hash("proxy_loaded") then
 		pprint(tostring(sender).." LOADED")
-
 		msg.post(sender, "init")
 		msg.post(sender, "enable")
+
+
+	elseif message_id == hash("proxy_unloaded") then
+		pprint(tostring(sender).." UNLOADED")
 	end
 end
 

@@ -9,7 +9,7 @@ end
 
 
 function on_message(self, message_id, message)
-	if message_id == hash("delete marker") then
+	if message_id == hash("delete") then
 		go.delete()
 	end
 end

@@ -2,9 +2,11 @@
 title = Saper
 developer = Dziq
 dependencies#0 = https://github.com/subsoap/defos/archive/v2.5.0.zip
+dependencies#1 = https://github.com/subsoap/chip-sounds/archive/master.zip
 
 [bootstrap]
 main_collection = /main/main.collectionc
+render = /builtins/render/default.renderc
 
 [input]
 game_binding = /input/game.input_bindingc
@@ -58,6 +60,7 @@ max_particle_count = 12000
 
 [graphics]
 max_draw_calls = 128
+texture_profiles = /main/default.texture_profiles
 
 [collection]
 max_instances = 512

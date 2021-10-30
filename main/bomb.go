@@ -31,8 +31,8 @@ components {
 embedded_components {
   id: "sprite"
   type: "sprite"
-  data: "tile_set: \"/assets/bomb.atlas\"\n"
-  "default_animation: \"anim\"\n"
+  data: "tile_set: \"/assets/bomb/bomb.atlas\"\n"
+  "default_animation: \"image001\"\n"
   "material: \"/builtins/materials/sprite.material\"\n"
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""

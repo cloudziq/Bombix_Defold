@@ -1,24 +1,53 @@
 
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	msg.post(".", "disable")
+end
+
+
+
+
 function on_message(self, message_id, message)
 	if message_id == hash("show display") then
+		msg.post(".", "enable")
 		gui.set_text(gui.get_node("bomb amount"), tostring(message.bombs))
 		gui.set_text(gui.get_node("tile amount"), tostring(message.tiles))
 
 		if theme_data[current_theme][2] == 1 then
-			gui.play_flipbook(gui.get_node("tile icon"), "tile"..current_theme)
+			if theme_data[current_theme][4] == nil then
+				gui.play_flipbook(gui.get_node("tile icon"), "tile"..current_theme)
+			else
+				gui.play_flipbook(gui.get_node("tile icon"), "tile"..current_theme.."_ON")
+			end
 		else
 			gui.play_flipbook(gui.get_node("tile icon"), "tile"..current_theme.."_"..math.random(1, theme_data[current_theme][2]))
 		end
 
 		gui.set_color(gui.get_node("marker icon"), vmath.vector4(.6, 1, .65, .6))
+		gui.set_scale(gui.get_node("marker icon"), vmath.vector3(5,5,1))
 		gui.animate(gui.get_node("marker icon"), "scale", 8, gui.EASING_INOUTSINE, 2, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
 
+
+	-- elseif message_id == hash("hide display") then
+	-- 	msg.post(".", "disable")
 
 	elseif message_id == hash("update display") then
 		if message.type == "marker" then
 			gui.set_text(gui.get_node("marker amount"), tostring(message.amount))
 		elseif message.type == "tile" then
 			gui.set_text(gui.get_node("tile amount"), tostring(message.amount))
+		end
+	end
+end
+
+
+
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") and action.pressed then
+		if gui.pick_node(gui.get_node("restart button"), action.x, action.y) then
+			msg.post("/main#level", "restart")
+			msg.post(".", "disable")
 		end
 	end
 end

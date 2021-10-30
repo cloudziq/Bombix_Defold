@@ -1,0 +1,107 @@
+
+-- local variables:
+local z, last_id = 0
+local default_range = 14000
+local level_bg_in_atlas = 64
+
+-- properties:
+go.property("reset", false)
+
+
+
+
+function init(self)
+	self.active = true
+	self.rotate = false
+	self.color  = true
+	self.scale  = false
+	self.change = false
+	self.delay  = true    -- for delaying change of BG until it shows up fully first time
+	self.sprite_id = msg.url(nil, go.get_id(), "sprite")
+	self.z = z
+
+	go.set_position(vmath.vector3(window_w / 2, window_h / 2 , z))
+	z = z + 0.01 ; last_id = go.get_id()
+	go.set_scale(10)
+	msg.post(self.sprite_id, "play_animation", { id = hash("bg"..math.random(1, level_bg_in_atlas)) })
+	go.set(self.sprite_id, "tint", vmath.vector4(.08, .1, .12, 0))
+	go.animate(self.sprite_id, "tint.w", go.PLAYBACK_ONCE_FORWARD, math.random(20, 60) / 100, go.EASING_INOUTSINE, math.random(4, 12), 0, function()
+		self.color = false
+		self.delay = false
+	end)
+end
+
+
+
+
+function update(self, dt)
+	local range, tint, time, delay, easing
+
+	-- if BG_active then
+		if self.reset then
+			self.reset = false ; self.rotate = false ; self.color = false ; self.scale = false ; self.change = false
+		end
+
+
+		if not self.rotate then
+			self.rotate = true
+			time = math.random(64, 88) ; delay = .24
+			easing = go.EASING_INOUTSINE
+
+			go.animate(".", "euler.z", go.PLAYBACK_ONCE_FORWARD, math.random(-360, 360), easing, time, delay, function()
+				self.rotate = false
+			end)
+
+
+		elseif not self.color and not self.change then
+			self.color = true
+			time = math.random(18, 32) ; delay = 4
+			easing = go.EASING_INOUTSINE
+
+			tint = vmath.vector4(math.random(20, 60) / 100, math.random(22, 60) / 100, math.random(24, 60) / 100, math.random(32, 80) / 100)
+			go.animate(self.sprite_id, "tint", go.PLAYBACK_ONCE_FORWARD, tint, easing, time, delay, function()
+				self.color = false
+			end)
+
+
+		elseif not self.scale then
+			self.scale = true
+			time = math.random(10, 26) ; delay = 6
+			easing = go.EASING_INOUTSINE
+
+			go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, (math.random(500, 880) / 100) * 2, easing, time, delay, function()
+				self.scale = false
+			end)
+
+
+		elseif self.change == true and not self.delay then
+			self.change = -1
+			go.animate(self.sprite_id, "tint.w", go.PLAYBACK_ONCE_FORWARD, 0, go.EASING_INOUTSINE, math.random(22, 40), 10, function()
+				msg.post(self.sprite_id, "play_animation", { id = hash("bg"..math.random(1, level_bg_in_atlas)) })
+				go.set_position(vmath.vector3(window_w / 2, window_h / 2 , self.z))
+				self.change = false
+			end)
+		end
+
+		if last_id == go.get_id() then range = default_range + 4 else range = default_range end
+		if math.random(1, range) >= default_range and self.change == false then self.change = true end
+
+	-- else
+	-- 	if self.active then
+	-- 		self.active = false
+	-- 		go.cancel_animations(self.sprite_id, "tint")
+	-- 		go.animate(self.sprite_id, "tint", go.PLAYBACK_ONCE_FORWARD, vmath.vector4(1,1,1,0), go.EASING_INOUTSINE, 4, 0, function()
+	-- 			go.delete()
+	-- 		end)
+	-- 	end
+	-- end
+end
+
+
+
+
+function on_message(self, message_id, message)
+	if message_id == hash("reset anim") then
+		self.reset = true
+	end
+end

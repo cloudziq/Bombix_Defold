@@ -1,7 +1,7 @@
 
 function init(self)
 	msg.post(".", "disable")
-	timer.delay(2.2, false, function() msg.post(".", "enable") end)
+	timer.delay(1.1, false, function() msg.post(".", "enable") end)
 end
 
 
@@ -12,5 +12,8 @@ function on_message(self, message_id, message, sender)
 		local pos = go.get_position()
 		pos.z = 1
 		go.set_position(pos)
+
+	elseif message_id == hash("delete") then
+		go.delete()
 	end
 end
