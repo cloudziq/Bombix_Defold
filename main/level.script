@@ -10,7 +10,7 @@ local board_data = {}  --[tile_x][tile_y][ [tile_id, digit_id, marker_id, bomb_i
 local tile_size  = 64   -- in pixels
 local tiles_left, markers
 local x_def, y_def
-local allow_board_input, allow_gui_input = false, false
+local allow_board_input, allow_gui_input, restart = false, false, false
 
 
 local board_tiles_x = level_data[current_level][1]
@@ -92,9 +92,15 @@ function on_message(self, message_id, message)
 	if message_id == hash("restart") and allow_gui_input then
 		allow_board_input = false
 		allow_gui_input = false
-		--timer.delay(.2, false, function()
-			reset_board()
-		--end)
+		reset_board()
+
+	elseif message_id == hash("tile sync") then
+		if board_data[message.x][message.y][1][2] ~= 0 then
+			msg.post(board_data[message.x][message.y][1][2], "tile sync", {pos = message.pos, rot = message.rot})
+		end
+		if board_data[message.x][message.y][1][3] ~= 0 then
+			msg.post(board_data[message.x][message.y][1][3], "tile sync", {pos = message.pos, rot = message.rot})
+		end
 	end
 end
 
@@ -133,10 +139,9 @@ function check_clicked_tile(x, y)
 		if tile == 0 then
 			reveal_sound_allow = true
 			reveal_tiles(x, y, {})
-			sound.play("/sound#plumk", {gain = .4, speed = math.random(80, 120) / 100} )
-		elseif tile >= 2 then
-			msg.post(board_data[x][y][1][4], "detonate bomb")
-			game_over()
+			sound.play("/sound#plumk", {gain = .4, speed = math.random(80, 120) / 100})
+		elseif tile == 2 then
+			game_over(x, y)
 		end
 	end
 end
@@ -144,7 +149,18 @@ end
 
 
 
-local near_coords = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}}
+local near_coords = {
+	{-1,  1}, {0,  1}, {1,  1},
+	{-1,  0},          {1,  0},
+	{-1, -1}, {0, -1}, {1, -1}
+}
+local near_coords_alt = {
+	{-2,  2}, {-1,  2}, { 0,  2}, { 1,  2}, { 2,  2},
+	{-2,  1}, {-1,  1}, { 0,  1}, { 1,  1}, { 2,  1},
+	{-2,  0}, {-1,  0},           { 1,  0}, { 2,  0},
+	{-2, -1}, {-1, -1}, { 0, -1}, { 1, -1}, { 2, -1},
+	{-2, -2}, {-1, -2}, { 0, -2}, { 1, -2}, { 2, -2}
+}
 
 function reveal_tiles(x, y, neighbours_table, count)
 	local cx, cy, particle_type
@@ -207,18 +223,24 @@ end
 
 
 
-function game_over()
-	local x, y
+function game_over(num_x, num_y)
+	local x, y, message
+	restart           = true
+	allow_board_input = false
 
 	for x = 1, board_tiles_x do
 		for y = 1, board_tiles_y do
 			if board_data[x][y][2] == 2 then
-				msg.post(board_data[x][y][1][4], "reveal bomb")
+				if x == num_x and y == num_y then
+					message = true
+				else
+					message = false
+				end
+				msg.post(board_data[x][y][1][4], "reveal bombs", {is_clicked_bomb = message})
 			end
 		end
 	end
 
-	allow_board_input = false
 	print("RIP")
 end
 
@@ -230,14 +252,19 @@ function prepare_board()
 	local y_def = ((window_h - (board_tiles_y * tile_size)) / 2) + (tile_size / 2)
 	local x, y, cx, cy = x_def, y_def, bomb
 
+	board_data = {}
 	tiles_left = (board_tiles_x * board_tiles_y) - bombs_amount
 	markers = 0
 
 	for a = 1, board_tiles_x do
-		table.insert(board_data, {})
+		--if not restart then
+			table.insert(board_data, {})
+		--end
 		for b = 1, board_tiles_y do
-			local id = factory.create("#tile_factory", vmath.vector3(x, y, .5))
-			board_data[a][b] = {{id, 0, 0, 0}, 0, 0}
+			--if not restart then
+				local id = factory.create("#tile_factory", vmath.vector3(x, y, .5), nil, {x = a, y = b})
+				board_data[a][b] = {{id, 0, 0, 0}, 0, 0}
+			--end
 			y = y + tile_size
 		end
 		y = y_def
@@ -269,6 +296,8 @@ function prepare_board()
 		allow_board_input = true
 		allow_gui_input = true
 	end)
+
+	restart = false
 end
 
 
@@ -289,8 +318,8 @@ function gen_num(x, y)
 	end
 
 	if counter > 0 then
-		cx = ((window_w - (board_tiles_x * tile_size)) / 2) + ((x - 1) * tile_size)
-		cy = ((window_h - (board_tiles_y * tile_size)) / 2) + ((y - 1) * tile_size)
+		cx = ((window_w - (board_tiles_x * tile_size)) / 2) + ((x - 1) * tile_size + (tile_size / 2))
+		cy = ((window_h - (board_tiles_y * tile_size)) / 2) + ((y - 1) * tile_size + (tile_size / 2))
 		local id = factory.create("/main#counter_factory", vmath.vector3(cx, cy, 0))
 		label.set_text(msg.url(nil, id, "label"), tostring(counter))
 		board_data[x][y][1][2] = id
@@ -312,20 +341,38 @@ end
 
 function reset_board()
 	local x, y, item, id
+	local delay
 
-	for x = 1, board_tiles_x do
-		for y = 1, board_tiles_y do
-			for item = 1, 4 do
-				id = board_data[x][y][1][item]
-				if id ~= 0 then
-					msg.post(id, "delete")
+	if restart then
+		delay = 2
+		msg.post(board_data[tile_num_x][tile_num_y][1][4], "detonate bomb")
+		for x = 1, board_tiles_x do
+			for y = 1, board_tiles_y do
+				if board_data[x][y][2] == 2 then
+					msg.post(board_data[x][y][1][4], "hide sprite")
 				end
 			end
 		end
+	else
+		delay = 0
 	end
 
-	board_data = {}
-	timer.delay(.1, false, function()
-		prepare_board()
+	timer.delay(delay, false, function()
+		for x = 1, board_tiles_x do
+			for y = 1, board_tiles_y do
+				for item = 1, 4 do
+					--if item ~= 1 and restart or not restart then
+						id = board_data[x][y][1][item]
+						if id ~= 0 then
+							msg.post(id, "delete")
+						end
+					--end
+				end
+			end
+		end
+
+		timer.delay(.1, false, function()
+			prepare_board()
+		end)
 	end)
 end

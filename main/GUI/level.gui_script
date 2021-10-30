@@ -25,6 +25,7 @@ function on_message(self, message_id, message)
 
 		gui.set_color(gui.get_node("marker icon"), vmath.vector4(.6, 1, .65, .6))
 		gui.set_scale(gui.get_node("marker icon"), vmath.vector3(5,5,1))
+		gui.set_text(gui.get_node("marker amount"), "0")
 		gui.animate(gui.get_node("marker icon"), "scale", 8, gui.EASING_INOUTSINE, 2, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
 
 

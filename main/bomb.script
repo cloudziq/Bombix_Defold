@@ -1,10 +1,11 @@
 
-local shake_time
+local shake_allow
 local shake  -- function
 
 
 
 function init(self)
+	shake_allow = true
 	self.pos = go.get_position()
 	go.set_scale(.4)
 	go.animate(".", "scale", go.PLAYBACK_LOOP_PINGPONG, vmath.vector3(.52, .52, 1), go.EASING_LINEAR, .8)
@@ -16,30 +17,32 @@ end
 
 function on_message(self, message_id, message)
 	if message_id == hash("detonate bomb") then
-		msg.post(msg.url(nil, go.get_id(), "sprite"), "enable")
-		sound.play("/sound#bomb_found")
+		shake_allow = false
+		msg.post("#sprite", "disable")
+		factory.create("/main#wave_factory")
 		go.cancel_animations(".", "scale")
-		go.set_scale(.4)
-		shake_time = socket.gettime() + 1
-		shake(self, 2)
-		go.animate(".", "scale", go.PLAYBACK_LOOP_PINGPONG, vmath.vector3(.66, .66, 1), go.EASING_LINEAR, .33, 0, nil, go.PLAYBACK_LOOP_PINGPONG)
-		go.set("#sprite", "tint", vmath.vector4(2,2,2,1))
-		go.animate("#sprite", "tint", go.PLAYBACK_LOOP_PINGPONG, vmath.vector4(2,0,0,1), go.EASING_LINEAR, .2, 0, nil, go.PLAYBACK_LOOP_PINGPONG)
-		timer.delay(1, false, function()
-			msg.post("#sprite", "disable")
-			go.cancel_animations(".", "scale")
-			go.set_scale(2)
-			sound.play("/sound#explode"..math.random(1, 2), {speed = proxy_speed})
-			sound.play("/sound#explode_echo"..math.random(1, 2), {speed = proxy_speed, delay = .4})
-			particlefx.play("#particles")
-		end)
+		go.set_scale(2)
+		sound.play("/sound#explode"..math.random(1, 2), {speed = proxy_speed})
+		sound.play("/sound#explode_echo"..math.random(1, 2), {speed = proxy_speed, delay = .4})
+		particlefx.play("#particles")
 
-	elseif message_id == hash("reveal bomb") then
-		timer.delay(1, false, function()
-			if go.get_scale().z ~= 2 then
-				msg.post(msg.url(nil, go.get_id(), "sprite"), "enable")
-			end
-		end)
+
+	elseif message_id == hash("reveal bombs") then
+		msg.post("#sprite", "enable")
+		if message.is_clicked_bomb then
+			local sprite_url = msg.url(nil, go.get_id(), "sprite")
+			sound.play("/sound#bomb_found")
+			go.set_scale(.36)
+			shake(self, 2)
+			go.animate(".", "scale", go.PLAYBACK_LOOP_PINGPONG, vmath.vector3(.64, .64, 1), go.EASING_LINEAR, .33, 0, nil, go.PLAYBACK_LOOP_PINGPONG)
+			go.set("#sprite", "tint", vmath.vector4(2,2,2,1))
+			go.animate(sprite_url, "tint", go.PLAYBACK_LOOP_PINGPONG, vmath.vector4(2,0,0,1), go.EASING_LINEAR, .2, 0, nil, go.PLAYBACK_LOOP_PINGPONG)
+		end
+
+
+	elseif message_id == hash("hide sprite") then
+		msg.post("#sprite", "disable")
+
 
 	elseif message_id == hash("delete") then
 		go.delete()
@@ -54,7 +57,7 @@ function shake(self, distance)
 	pos.x = pos.x + math.random(-distance, distance)
 	pos.y = pos.y + math.random(-distance, distance)
 
-	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, .1, 0, function()
-		if socket.gettime() < shake_time then shake(self, distance) end
+	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, .2, 0, function()
+		if shake_allow then shake(self, distance) end
 	end)
 end

@@ -13,7 +13,7 @@ theme_data = {
 	{"rounded tile",    1, nil, nil},    -- 10
 	{"light tiles",     1, 1,   true}    -- 11
 }
-current_theme = 4
+current_theme = 9
 
 
 -- max board size: 10x16
@@ -55,7 +55,7 @@ level_data = {
 	{10, 16, 1},    -- 34
 	{10, 16, 1},    -- 35
 }
-current_level = 30
+current_level = 27
 
 
 
