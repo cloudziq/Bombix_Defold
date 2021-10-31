@@ -9,12 +9,19 @@ end
 
 
 function on_message(self, message_id, message)
-	if message_id == hash("delete") then
-		go.delete()
-
-	elseif message_id == hash("tile sync") then
-		-- local pos1, pos2, pos = message.pos, go.get_position()
-		-- pos = vmath.vector3(pos1.x, pos1.y, pos2.z)
+	if message_id == hash("tile sync") then
 		go.set_position(message.pos) ; go.set_rotation(message.rot)
+
+
+	elseif message_id == hash("mark as correct") then
+		go.set("#sprite", "tint", vmath.vector4(0,1,0,1))
+
+
+	elseif message_id == hash("mark as incorrect") then
+		go.set("#sprite", "tint", vmath.vector4(1,0,0,1))
+
+
+	elseif message_id == hash("delete") then
+		go.delete()
 	end
 end

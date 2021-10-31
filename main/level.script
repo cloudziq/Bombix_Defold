@@ -8,9 +8,9 @@ local board_data = {}  --[tile_x][tile_y][ [tile_id, digit_id, marker_id, bomb_i
 
 
 local tile_size  = 64   -- in pixels
-local tiles_left, markers
+local tiles_left, markers, touch_id
 local x_def, y_def
-local allow_board_input, allow_gui_input, restart = false, false, false
+local allow_board_input, allow_gui_input, restart, detector_mode = false, false, false, false
 
 
 local board_tiles_x = level_data[current_level][1]
@@ -34,8 +34,6 @@ function init(self)
 
 	for a = 1, 8 do
 		factory.create("/main#BG_factory")
-		--table.insert(BG_table, id)
-		--BG_url = msg.url(nil, id, nil)
 	end
 end
 
@@ -74,7 +72,10 @@ function on_input(self, action_id, action)
 				elseif action.released and self.check_input then
 					self.check_input = false
 					if board_data[tile_num_x][tile_num_y][1][3] == 0 then
-						factory.create("#touch_factory", vmath.vector3(action.x, action.y, 1))
+						if touch_id then
+							msg.post(touch_id, "delete")
+						end
+						touch_id = factory.create("#touch_factory", vmath.vector3(action.x, action.y, 1))
 					end
 				end
 
@@ -94,6 +95,7 @@ function on_message(self, message_id, message)
 		allow_gui_input = false
 		reset_board()
 
+
 	elseif message_id == hash("tile sync") then
 		if board_data[message.x][message.y][1][2] ~= 0 then
 			msg.post(board_data[message.x][message.y][1][2], "tile sync", {pos = message.pos, rot = message.rot})
@@ -101,6 +103,18 @@ function on_message(self, message_id, message)
 		if board_data[message.x][message.y][1][3] ~= 0 then
 			msg.post(board_data[message.x][message.y][1][3], "tile sync", {pos = message.pos, rot = message.rot})
 		end
+
+
+	elseif message_id == hash("detector") then
+		if detector_mode then
+			detector_mode = false
+		else
+			detector_mode = true
+		end
+
+
+	elseif message_id == hash("remove touch_id") then
+		prev_touch_id = false
 	end
 end
 
@@ -136,9 +150,13 @@ function check_clicked_tile(x, y)
 	if allow_board_input then
 		local tile = board_data[x][y][2]
 
+		if tile ~= 2 then
+			msg.post(touch_id, "show range", {board_x = board_tiles_x, board_y = board_tiles_y, size = tile_size, detector = detector_mode})
+		end
+
 		if tile == 0 then
 			reveal_sound_allow = true
-			reveal_tiles(x, y, {})
+			reveal_tiles(x, y, detector_mode, {})
 			sound.play("/sound#plumk", {gain = .4, speed = math.random(80, 120) / 100})
 		elseif tile == 2 then
 			game_over(x, y)
@@ -154,7 +172,8 @@ local near_coords = {
 	{-1,  0},          {1,  0},
 	{-1, -1}, {0, -1}, {1, -1}
 }
-local near_coords_alt = {
+
+local near_coords_detector = {
 	{-2,  2}, {-1,  2}, { 0,  2}, { 1,  2}, { 2,  2},
 	{-2,  1}, {-1,  1}, { 0,  1}, { 1,  1}, { 2,  1},
 	{-2,  0}, {-1,  0},           { 1,  0}, { 2,  0},
@@ -162,9 +181,11 @@ local near_coords_alt = {
 	{-2, -2}, {-1, -2}, { 0, -2}, { 1, -2}, { 2, -2}
 }
 
-function reveal_tiles(x, y, neighbours_table, count)
+function reveal_tiles(x, y, detector, neighbours_table, count)
 	local cx, cy, particle_type
-	count = count or 0
+	local coords = not detector and near_coords or near_coords_detector
+	print(#coords)
+	count = count or 0  -- for multi tiles reveal sound only
 
 	board_data[x][y][2] = 1
 	tiles_left = tiles_left - 1
@@ -204,7 +225,7 @@ function reveal_tiles(x, y, neighbours_table, count)
 			local y = neighbours_table[index][2]
 			-- process only unrevealed tiles
 			if board_data[x][y][2] == 0 then
-				reveal_tiles(x, y, neighbours_table, count + 1)
+				reveal_tiles(x, y, detector, neighbours_table, count + 1)
 			end
 		end
 		particle_type = "_multi"
@@ -230,12 +251,24 @@ function game_over(num_x, num_y)
 
 	for x = 1, board_tiles_x do
 		for y = 1, board_tiles_y do
+
+			-- color the markers as correctly placed or not
+			if board_data[x][y][1][3] ~= 0 then
+				if board_data[x][y][2] == 2 then
+					msg.post(board_data[x][y][1][3], "mark as correct")
+				else
+					msg.post(board_data[x][y][1][3], "mark as incorrect")
+				end
+			end
+
+			-- check if tile contains a bomb, and if this specific bomb was ignited
 			if board_data[x][y][2] == 2 then
 				if x == num_x and y == num_y then
 					message = true
 				else
 					message = false
 				end
+
 				msg.post(board_data[x][y][1][4], "reveal bombs", {is_clicked_bomb = message})
 			end
 		end

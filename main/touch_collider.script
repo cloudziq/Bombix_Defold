@@ -1,6 +1,52 @@
 
+--local num = 0
+--local data = {}
+
+
+
+
+function init(self)
+	--table.insert(data, go.get_id())
+	msg.post("#sprite", "disable")
+end
+
+
+
+
 function on_message(self, message_id, message, sender)
-	if message_id == hash("delete") then
+	if message_id == hash("disable collider") then
+		msg.post("#tile_collide", "disable")
+
+
+	elseif message_id == hash("delete") then
 		go.delete()
+		--msg.post(sender, "remove touch_id")
+
+
+	elseif message_id == hash("show range") then
+		local id, scale
+
+		--delete older range displays
+		-- for num, id in ipairs(data) do
+		-- 	if id ~= go.get_id() then
+		-- 		go.delete(id)
+		-- 		table.remove(data, num)
+		-- 		pprint(data)
+		-- 	end
+		-- end
+
+		msg.post("#sprite", "enable")
+		if message.detector then
+			scale = 2.5
+		else
+			scale = 1.5
+		end
+		go.set_scale(scale)
+		local x = (window_w - (message.board_x * message.size)) / 2 + (tile_num_x * message.size) - (message.size / 2)
+		local y = (window_h - (message.board_y * message.size)) / 2 + (tile_num_y * message.size) - (message.size / 2)
+		go.set_position(vmath.vector3(x, y, 1))
+		go.animate("#sprite", "tint", go.PLAYBACK_ONCE_FORWARD, vmath.vector4(0,0,0,0), go.EASING_OUTSINE, 4, 0, function()
+			--go.delete()
+		end)
 	end
 end

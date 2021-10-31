@@ -1,19 +1,21 @@
 
--- "name", variations, outline, ON/OFF_variants
+--  1                   2            3              4           5
+--  "name":             variants:    random_rot:    outline:    ON/OFF_variants:
 theme_data = {
-	{"metal tiles",     1, 1,   nil},    -- 1
-	{"asphalt",         1, 1,   nil},    -- 2
-	{"clean tiles",     1, 1,   nil},    -- 3
-	{"cartoon",         3, nil, nil},    -- 4
-	{"wooden",          4, 1,   nil},    -- 5
-	{"old bricks",      4, nil, nil},    -- 6
-	{"marble",          1, 1,   nil},    -- 7
-	{"stones",          1 ,1,   nil},    -- 8
-	{"blue circles",    1, nil, nil},    -- 9
-	{"rounded tile",    1, nil, nil},    -- 10
-	{"light tiles",     1, 1,   true}    -- 11
+	{"metal tiles",     1,           nil,           1,          nil},            -- 1
+	{"asphalt",         1,           nil,           1,          nil},            -- 2
+	{"clean tiles",     1,           nil,           1,          nil},            -- 3
+	{"cartoon",         3,           nil,           nil,        nil},            -- 4
+	{"wooden",          4,           nil,           1,          nil},            -- 5
+	{"old bricks",      4,           nil,           nil,        nil},            -- 6
+	{"marble",          1,           nil,           1,          nil},            -- 7
+	{"stones",          1,           nil,           1,          nil},            -- 8
+	{"blue circles",    1,           nil,           nil,        nil},            -- 9
+	{"rounded tile",    1,           nil,           nil,        nil},            -- 10
+	{"light tiles",     1,           nil,           1,          true},           -- 11
+	{"plasma",          1,           true,          nil,        nil},            -- 12
 }
-current_theme = 9
+current_theme = 10
 
 
 -- max board size: 10x16
@@ -55,7 +57,7 @@ level_data = {
 	{10, 16, 1},    -- 34
 	{10, 16, 1},    -- 35
 }
-current_level = 27
+current_level = 28
 
 
 
@@ -71,7 +73,7 @@ function init(self)
 	defos.disable_window_resize()
 
 	window_w, window_h = 640, 1152
-	temp_window_w = window_w * 4 ; temp_window_h = window_h * 4
+	temp_window_w = window_w * 2 ; temp_window_h = window_h * 2
 
 	--screen_w = 1650 ; screen_h = 874  -- smaller window
 	--screen_w = 1650 ; screen_h = 600   -- for recording

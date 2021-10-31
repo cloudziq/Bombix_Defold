@@ -17,6 +17,8 @@ end
 
 function on_message(self, message_id, message)
 	if message_id == hash("detonate bomb") then
+		local pos = go.get_position()
+		go.set_position(vmath.vector3(pos.x, pos.y, .5))
 		shake_allow = false
 		msg.post("#sprite", "disable")
 		factory.create("/main#wave_factory")
@@ -53,7 +55,7 @@ end
 
 
 function shake(self, distance)
-	local pos = self.pos
+	local pos = vmath.vector3(self.pos)
 	pos.x = pos.x + math.random(-distance, distance)
 	pos.y = pos.y + math.random(-distance, distance)
 
