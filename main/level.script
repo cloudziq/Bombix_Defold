@@ -1,10 +1,11 @@
 
 -- tile status:
 -- 0: unrevealed
--- 1: revealed
--- 2: contains a bomb
+-- 1: contains a bomb
+-- 2: revealed
+-- 3: detector tile
 
-local board_data = {}  --[tile_x][tile_y][ [tile_id, digit_id, marker_id, bomb_id], tile_status, bomb_counter]
+local board_data = {}  --[tile_x][tile_y][ [tile_id, digit_id, marker_id, bomb_id], tile_status, bomb_count]
 
 
 local tile_size  = 64   -- in pixels
@@ -22,7 +23,7 @@ end
 
 
 -- local functions:
-local tile_marker, reveal_tiles, game_over, prepare_board, reset_board, gen_num, gen_pos
+local tile_marker, reveal_tiles, game_over, prepare_board, reset_board, gen_num, gen_pos, show_starter_tiles
 
 
 
@@ -70,9 +71,10 @@ function on_input(self, action_id, action)
 					hold_time = socket.gettime() + .44
 					self.check_input = true
 				elseif action.released and self.check_input then
+					local x, y = tile_num_x, tile_num_y
 					self.check_input = false
-					if board_data[tile_num_x][tile_num_y][1][3] == 0 then
-						if touch_id then
+					if board_data[x][y][1][3] == 0 then
+						if touch_id and (board_data[x][y][2] ~= 1 and board_data[x][y][1][2] ~= 0) then
 							msg.post(touch_id, "delete")
 						end
 						touch_id = factory.create("#touch_factory", vmath.vector3(action.x, action.y, 1))
@@ -126,7 +128,7 @@ function tile_marker(x, y)
 	local cx = ((window_w - (board_tiles_x * tile_size)) / 2) + ((x - 1) * tile_size) + (tile_size / 2)
 	local cy = ((window_h - (board_tiles_y * tile_size)) / 2) + ((y - 1) * tile_size) + (tile_size / 2)
 
-	if board_data[x][y][2] ~= 1 then
+	if board_data[x][y][2] < 2  then
 		if id == 0 then
 			markers = markers + 1
 			local id = factory.create("#tile_marker_factory", vmath.vector3(cx, cy, .99))
@@ -150,15 +152,18 @@ function check_clicked_tile(x, y)
 	if allow_board_input then
 		local tile = board_data[x][y][2]
 
-		if tile ~= 2 then
-			msg.post(touch_id, "show range", {board_x = board_tiles_x, board_y = board_tiles_y, size = tile_size, detector = detector_mode})
+		if tile ~= 1 and board_data[x][y][1][2] ~= 0 then
+			local detector
+			if board_data[x][y][2] == 3 then detector = true else detector = false end
+			msg.post(touch_id, "show range", {board_x = board_tiles_x, board_y = board_tiles_y, size = tile_size, detector = detector})
 		end
 
 		if tile == 0 then
 			reveal_sound_allow = true
 			reveal_tiles(x, y, detector_mode, {})
 			sound.play("/sound#plumk", {gain = .4, speed = math.random(80, 120) / 100})
-		elseif tile == 2 then
+			detector_mode = false
+		elseif tile == 1 then
 			game_over(x, y)
 		end
 	end
@@ -183,13 +188,19 @@ local near_coords_detector = {
 
 function reveal_tiles(x, y, detector, neighbours_table, count)
 	local cx, cy, particle_type
-	local coords = not detector and near_coords or near_coords_detector
-	print(#coords)
-	count = count or 0  -- for multi tiles reveal sound only
+	local detector = detector or false
+	--local coords = not detector and near_coords or near_coords_detector
+	local count = count or 0  -- for multi tiles reveal sound only
 
-	board_data[x][y][2] = 1
 	tiles_left = tiles_left - 1
 	msg.post("/gui#level", "update display", {type = "tile", amount = tiles_left})
+
+	if not detector then
+		board_data[x][y][2] = 2
+	else
+		gen_num(x, y, detector)
+		board_data[x][y][2] = 3
+	end
 
 	if tiles_left == 0 then print("YOU WIN!") end
 
@@ -204,12 +215,8 @@ function reveal_tiles(x, y, detector, neighbours_table, count)
 		cy = y + value[2]
 
 		if (cx >= 1 and cx <= board_tiles_x) and (cy >= 1 and cy <= board_tiles_y) then
-			if board_data[x][y][3] == 0 then
-				local tile = board_data[cx][cy][2]
-
-				if board_data[x][y][3] == 0 and board_data[cx][cy][2] < 2 then
-					table.insert(neighbours_table, {cx, cy})
-				end
+			if board_data[x][y][3] == 0 and board_data[cx][cy][2] ~= 1 then
+				table.insert(neighbours_table, {cx, cy})
 			else
 				msg.post(board_data[x][y][1][2], "reveal digit")
 			end
@@ -225,7 +232,7 @@ function reveal_tiles(x, y, detector, neighbours_table, count)
 			local y = neighbours_table[index][2]
 			-- process only unrevealed tiles
 			if board_data[x][y][2] == 0 then
-				reveal_tiles(x, y, detector, neighbours_table, count + 1)
+				reveal_tiles(x, y, false, neighbours_table, count + 1)
 			end
 		end
 		particle_type = "_multi"
@@ -238,7 +245,7 @@ function reveal_tiles(x, y, detector, neighbours_table, count)
 		markers = markers - 1
 	end
 
-	msg.post(board_data[x][y][1][1], "reveal tile", {type = particle_type})
+	msg.post(board_data[x][y][1][1], "reveal tile", {type = particle_type, detector = detector})
 end
 
 
@@ -254,7 +261,7 @@ function game_over(num_x, num_y)
 
 			-- color the markers as correctly placed or not
 			if board_data[x][y][1][3] ~= 0 then
-				if board_data[x][y][2] == 2 then
+				if board_data[x][y][2] == 1 then
 					msg.post(board_data[x][y][1][3], "mark as correct")
 				else
 					msg.post(board_data[x][y][1][3], "mark as incorrect")
@@ -262,7 +269,7 @@ function game_over(num_x, num_y)
 			end
 
 			-- check if tile contains a bomb, and if this specific bomb was ignited
-			if board_data[x][y][2] == 2 then
+			if board_data[x][y][2] == 1 then
 				if x == num_x and y == num_y then
 					message = true
 				else
@@ -289,15 +296,13 @@ function prepare_board()
 	tiles_left = (board_tiles_x * board_tiles_y) - bombs_amount
 	markers = 0
 
+	-- generate tiles
 	for a = 1, board_tiles_x do
-		--if not restart then
-			table.insert(board_data, {})
-		--end
+		table.insert(board_data, {})
+
 		for b = 1, board_tiles_y do
-			--if not restart then
-				local id = factory.create("#tile_factory", vmath.vector3(x, y, .5), nil, {x = a, y = b})
-				board_data[a][b] = {{id, 0, 0, 0}, 0, 0}
-			--end
+			local id = factory.create("#tile_factory", vmath.vector3(x, y, .5), nil, {x = a, y = b})
+			board_data[a][b] = {{id, 0, 0, 0}, 0, 0}
 			y = y + tile_size
 		end
 		y = y_def
@@ -308,8 +313,8 @@ function prepare_board()
 	-- generate bombs:
 	x, y = gen_pos()
 	for bomb = 1, bombs_amount do
-		while board_data[x][y][2] == 2 do x, y = gen_pos() end
-		board_data[x][y][2] = 2
+		while board_data[x][y][2] == 1 do x, y = gen_pos() end
+		board_data[x][y][2] = 1
 		cx = x_def + ((x - 1) * tile_size)
 		cy = y_def + ((y - 1) * tile_size)
 		local id = factory.create("#bomb_factory", vmath.vector3(cx, cy + 4, 1))
@@ -320,45 +325,70 @@ function prepare_board()
 	-- generate numbers:
 	for x = 1, board_tiles_x do
 		for y = 1, board_tiles_y do
-			gen_num(x, y)
+			if board_data[x][y][2] ~= 1 then
+				gen_num(x, y)
+			end
 		end
 	end
 
-	timer.delay(1, false, function()
+
+	timer.delay(1.1, false, function()
 		msg.post("/gui#level", "show display", {bombs = bombs_amount, tiles = tiles_left})
+		show_starter_tiles()
 		allow_board_input = true
 		allow_gui_input = true
 	end)
 
-	restart = false
+	restart       = false
+	detector_mode = false
 end
 
 
 
 
-function gen_num(x, y)
+function gen_num(x, y, detector)
 	local counter, cx, cy = 0
+	local detector = detector or false
+	local coords = not detector and near_coords or near_coords_detector
+	--local add = not detector and 1 or 2
 
-	for index, _ in ipairs(near_coords) do
-		cx = x + near_coords[index][1]
-		cy = y + near_coords[index][2]
+	for index, _ in ipairs(coords) do
+		cx = x + coords[index][1]
+		cy = y + coords[index][2]
 
 		if (cx >= 1 and cx <= board_tiles_x) and (cy >= 1 and cy <= board_tiles_y) then
-			if board_data[cx][cy][2] == 2 then
+			if board_data[cx][cy][2] == 1 then
 				counter = counter + 1
 			end
 		end
 	end
 
 	if counter > 0 then
+		local id
 		cx = ((window_w - (board_tiles_x * tile_size)) / 2) + ((x - 1) * tile_size + (tile_size / 2))
 		cy = ((window_h - (board_tiles_y * tile_size)) / 2) + ((y - 1) * tile_size + (tile_size / 2))
-		local id = factory.create("/main#counter_factory", vmath.vector3(cx, cy, 0))
+		if not detector or board_data[x][y][1][3] == 0 then
+			id = factory.create("/main#counter_factory", vmath.vector3(cx, cy, 0))
+		end
 		label.set_text(msg.url(nil, id, "label"), tostring(counter))
 		board_data[x][y][1][2] = id
 	end
 
 	board_data[x][y][3] = counter
+end
+
+
+
+
+function show_starter_tiles()
+	for _ = 1, level_data[current_level][4] do
+		local x, y = gen_pos()
+		while board_data[x][y][3] == 0 or board_data[x][y][2] > 0 do x, y = gen_pos() end
+		board_data[x][y][2] = 2
+		msg.post(board_data[x][y][1][1], "reveal tile")
+		msg.post(board_data[x][y][1][2], "reveal digit")
+		tiles_left = tiles_left - 1
+	end
 end
 
 
@@ -381,7 +411,7 @@ function reset_board()
 		msg.post(board_data[tile_num_x][tile_num_y][1][4], "detonate bomb")
 		for x = 1, board_tiles_x do
 			for y = 1, board_tiles_y do
-				if board_data[x][y][2] == 2 then
+				if board_data[x][y][2] == 1 then
 					msg.post(board_data[x][y][1][4], "hide sprite")
 				end
 			end
@@ -394,12 +424,10 @@ function reset_board()
 		for x = 1, board_tiles_x do
 			for y = 1, board_tiles_y do
 				for item = 1, 4 do
-					--if item ~= 1 and restart or not restart then
-						id = board_data[x][y][1][item]
-						if id ~= 0 then
-							msg.post(id, "delete")
-						end
-					--end
+					id = board_data[x][y][1][item]
+					if id ~= 0 then
+						msg.post(id, "delete")
+					end
 				end
 			end
 		end

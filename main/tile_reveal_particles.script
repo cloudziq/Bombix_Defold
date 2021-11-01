@@ -9,6 +9,8 @@ end
 
 function on_message(self, message_id, message)
 	if message_id == hash("play particles") then
-		particlefx.play("#tile_reveal"..message.type)
+		if message.type then
+			particlefx.play("#tile_reveal"..message.type)
+		end
 	end
 end
