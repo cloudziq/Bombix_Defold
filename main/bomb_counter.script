@@ -1,7 +1,7 @@
 
 function init(self)
 	msg.post(".", "disable")
-	--timer.delay(1.1, false, function() msg.post(".", "enable") end)
+	go.set_scale(1.72)
 end
 
 
@@ -9,16 +9,15 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("reveal digit") then
-		local pos = go.get_position()
-		pos.z = 1
-		go.set_position(pos) ; go.set_scale(vmath.vector3(1,1,1))
+		local rotation
+
+		if message.rot < 0 then
+			rotation = 0 + message.rot
+		else
+			rotation = 0 - message.rot
+		end
+		go.set(".", "euler.z", rotation)
 		msg.post(".", "enable")
-
-
-	elseif message_id == hash("tile sync") then
-		local pos1, pos2, pos = message.pos, go.get_position()
-		pos = vmath.vector3(pos1.x, pos1.y, pos2.z)
-		go.set_position(pos) ; go.set_rotation(message.rot)
 
 
 	elseif message_id == hash("delete") then

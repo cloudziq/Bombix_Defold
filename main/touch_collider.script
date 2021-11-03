@@ -1,13 +1,7 @@
 
---local num = 0
---local data = {}
-
-
-
-
 function init(self)
-	--table.insert(data, go.get_id())
 	msg.post("#sprite", "disable")
+	--print("touch        : "..go.get_id())
 end
 
 
@@ -20,6 +14,7 @@ function on_message(self, message_id, message, sender)
 
 	elseif message_id == hash("delete") then
 		go.delete()
+		--print("touch deleted: "..go.get_id())
 
 
 	elseif message_id == hash("show range") then

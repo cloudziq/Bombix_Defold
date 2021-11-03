@@ -1,44 +1,45 @@
 
-go.property("x", 0)
-go.property("y", 0)
+local z
 
-
-local animate_tile -- function
+-- local functions:
+local mark_as_detector, animate_tile
 
 
 
 
 function init(self)
 	local x, y
+
 	go.set_scale(.5)
-	sprite.set_hflip("#tile_main", math.random(1,2) == 2)
-	sprite.set_vflip("#tile_main", math.random(1,2) == 2)
+	sprite.set_hflip("#sprite", math.random(1,2) == 2)
+	sprite.set_vflip("#sprite", math.random(1,2) == 2)
+	msg.post("#collide_tile", "disable")
+	msg.post("#collide_wave", "enable")
 
 	if theme_data[current_theme][2] == 1 then
-		if theme_data[current_theme][5] == nil then
-			sprite.play_flipbook("#tile_main", "tile"..current_theme)
+		if theme_data[current_theme][4] == nil then
+			sprite.play_flipbook("#sprite", "tile"..current_theme)
 		else
-			sprite.play_flipbook("#tile_main", "tile"..current_theme.."_ON")
+			sprite.play_flipbook("#sprite", "tile"..current_theme.."_ON")
 		end
 	else
-		sprite.play_flipbook("#tile_main", "tile"..current_theme.."_"..math.random(1, theme_data[current_theme][2]))
+		sprite.play_flipbook("#sprite", "tile"..current_theme.."_"..math.random(1, theme_data[current_theme][2]))
 	end
 
-	if theme_data[current_theme][4] ~= nil then
-		sprite.set_constant("#tile_border", "tint", vmath.vector4(0,0,0,1))
-	else
-		sprite.set_constant("#tile_border", "tint", vmath.vector4(0,0,0,0))
-	end
-
-	if theme_data[current_theme][3] ~= nil then
-		go.set(".", "euler.z", math.random(0,360))
+	local data = theme_data[current_theme][3]
+	if data ~= nil then
+		if data == 1 then
+			local angle = math.random(1, 2) >= 2 and 90 or 0
+			go.set(".", "euler.z", angle)
+		else
+			go.set(".", "euler.z", math.random(0,360))
+		end
 	end
 		
 
-	self.pos     = go.get_position()
-	self.rot     = go.get(".", "euler.z")
-	self.scale   = go.get_scale()
-	self.collide = true
+	self.pos          = go.get_position()
+	self.rot          = go.get(".", "euler.z")
+	self.scale        = go.get_scale()
 
 	x, y = gen_offscreen_pos(100)
 
@@ -47,16 +48,18 @@ function init(self)
 	go.set_scale(math.random(2, 62) / 10)
 
 	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, self.pos, go.EASING_OUTQUINT, math.random(6, 12) / 10)
-	go.animate(".", "euler.z", go.PLAYBACK_ONCE_FORWARD, self.rot, go.EASING_OUTQUINT, math.random(1, 2))
+	go.animate(".", "euler.z", go.PLAYBACK_ONCE_FORWARD, self.rot, go.EASING_OUTQUINT, 1)
 	go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale, go.EASING_OUTQUINT, .4, 0, function()
 		go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale / 2, go.EASING_INQUINT, .6, 0, function()
-			go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale, go.EASING_OUTQUINT, .4)
-			if theme_data[current_theme][5] == nil then
-				sprite.set_constant("#tile_main", "tint", vmath.vector4(.2, .22, .24, 1))
+			go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale, go.EASING_OUTQUINT, math.random(1, 4))
+
+			if theme_data[current_theme][4] == nil then
+				sprite.set_constant("#sprite", "tint", vmath.vector4(.2, .22, .24, 1))
 			else
-				sprite.play_flipbook("#tile_main", "tile"..current_theme.."_OFF")
+				sprite.play_flipbook("#sprite", "tile"..current_theme.."_OFF")
 			end
-			animate_tile(self)
+
+			animate_tile(self, false)
 		end)
 	end)
 end
@@ -65,40 +68,64 @@ end
 
 
 function on_message(self, message_id, message, sender)
-	local id
-
 	if message.group == hash("touch") then
 		msg.post(message.other_id, "disable collider")
 		check_clicked_tile(tile_num_x, tile_num_y)
 
 
-	elseif message.group == hash("wave") and message_id == hash("contact_point_response") and self.collide == true then
+	elseif message.group == hash("tile") then
+		local pos = go.get_position()
+		msg.post("#collide_tile", "disable")
+		pos.z = z
+		z = z + 0.001
+		go.set_position(pos)
+
+
+	elseif message.group == hash("wave") and message_id == hash("contact_point_response") then
 		local pos = go.get_position() + message.normal * (message.distance * 1.4)
 		local angle = message.distance * 1.22
 		if angle <= 0 then angle = 1 end
 		local rot = vmath.quat_rotation_z((math.random(-angle, angle) * math.pi / 180))
-		self.collide = false
-		go.cancel_animations(".", "position")
-		go.set_position(pos) ; go.set_rotation(rot)
-		msg.post("/main#level", "tile sync", {x = self.x, y = self.y, pos = pos, rot = rot})
+		go.cancel_animations(".", "euler")
+		go.set_rotation(rot)
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.1, 0, function()
+			msg.post("#collide_tile", "enable")
+		end)
+		msg.post("#collide_wave", "disable")
 
 
 	elseif message_id == hash("reveal tile") then
-		if theme_data[current_theme][5] == nil then
-			if message.detector then
-				sprite.set_constant("#tile_main", "tint", vmath.vector4(.4, .5, 1, 1))
-				local pos = go.get_position()
-				local scale = go.get_scale().x + .1
-				go.set_position(vmath.vector3(pos.x, pos.y, .1))
-				go.animate(".", "scale", go.PLAYBACK_LOOP_PINGPONG, vmath.vector3(scale), go.EASING_INOUTSINE, 1)
-			else
-				sprite.set_constant("#tile_main", "tint", vmath.vector4(1,1,1,1))
-			end
+		if theme_data[current_theme][4] == nil then
+			-- if message.detector then
+			-- 	mark_as_detector()
+			-- else
+				sprite.set_constant("#sprite", "tint", vmath.vector4(1,1,1,1))
+			-- end
 		else
-			sprite.play_flipbook("#tile_main", "tile"..current_theme.."_ON")
+			-- if message.detector then
+			-- 	mark_as_detector()
+			-- end
+			sprite.play_flipbook("#sprite", "tile"..current_theme.."_ON")
 		end
-		id = factory.create("/main#tile_reveal_particle_factory")
+
+		local pos = go.get_position()
+		if message.detector then
+			mark_as_detector()
+			pos.z = pos.z + 0.12
+		else
+			pos.z = pos.z + 0.1
+		end
+		go.cancel_animations(".", "position")
+		go.set_position(vmath.vector3(pos.x, pos.y, pos.z))
+		animate_tile(self, true)
+
+		local id = factory.create("/main#tile_reveal_particle_factory")
 		msg.post(id, "play particles", {type = message.type})
+		--go.cancel_animations(".", "euler")
+
+
+	elseif message_id == hash("reset tile Z order") then
+		z = 0.1
 
 
 	elseif message_id == hash("delete") then
@@ -109,13 +136,25 @@ end
 
 
 
-function animate_tile(self)
+function mark_as_detector()
+	sprite.set_constant("#sprite", "tint", vmath.vector4(.4, .5, 1.1, 1))
+	local scale = go.get_scale().x + .1
+	go.animate(".", "scale", go.PLAYBACK_LOOP_PINGPONG, vmath.vector3(scale), go.EASING_INOUTSINE, 1)
+end
+
+
+
+
+function animate_tile(self, refresh_z)
 	local pos = vmath.vector3(self.pos)
 	local distance = 2
 
 	pos.x = pos.x + math.random(-distance, distance)
 	pos.y = pos.y + math.random(-distance, distance)
+	pos.z = refresh_z and go.get_position().z or pos.z
+	self.pos = vmath.vector3(self.pos.x, self.pos.y, pos.z)
+
 	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_INOUTSINE, math.random(2, 4), 0, function()
-		animate_tile(self)
+		animate_tile(self, false)
 	end)
 end

@@ -59,7 +59,7 @@ function on_input(self, action_id, action)
 			msg.post(".", "disable")
 
 
-		elseif gui.pick_node(gui.get_node("detector"), action.x, action.y) and gui.is_enabled(gui.get_node("detector")) then
+		elseif gui.pick_node(gui.get_node("detector"), action.x, action.y) and gui.is_enabled(gui.get_node("detector")) and G_allow_board_input then
 			msg.post("/main#level", "detector")
 			gui.set_enabled(gui.get_node("detector"), false)
 		end
