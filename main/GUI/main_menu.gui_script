@@ -2,6 +2,14 @@
 function init(self)
 	msg.post(".", "acquire_input_focus")
 	sound.play("/sound#menu_music")
+
+	BG_table = {}
+	for a = 1, 8 do
+		local id = factory.create("/main#BG_factory")
+		table.insert(BG_table, msg.url(nil, id, nil))
+	end
+
+	gui.set_enabled(gui.get_node("title"), false)
 end
 
 

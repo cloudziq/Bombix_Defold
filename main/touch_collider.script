@@ -21,9 +21,9 @@ function on_message(self, message_id, message, sender)
 		local id, scale
 
 		if message.detector then
-			scale = 2.5
+			scale = 2.7
 		else
-			scale = 1.5
+			scale = 1.6
 		end
 
 		go.set_scale(scale)

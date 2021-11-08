@@ -1,5 +1,7 @@
 
+-- local variables
 local z
+local dark_color = vmath.vector4(.18, .20, .22, 1)
 
 -- local functions:
 local mark_as_detector, animate_tile
@@ -51,10 +53,10 @@ function init(self)
 	go.animate(".", "euler.z", go.PLAYBACK_ONCE_FORWARD, self.rot, go.EASING_OUTQUINT, 1)
 	go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale, go.EASING_OUTQUINT, .4, 0, function()
 		go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale / 2, go.EASING_INQUINT, .6, 0, function()
-			go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale, go.EASING_OUTQUINT, math.random(1, 4))
+			go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale, go.EASING_OUTQUINT, math.random(1, 6))
 
 			if theme_data[current_theme][4] == nil then
-				sprite.set_constant("#sprite", "tint", vmath.vector4(.2, .22, .24, 1))
+				sprite.set_constant("#sprite", "tint", dark_color)
 			else
 				sprite.play_flipbook("#sprite", "tile"..current_theme.."_OFF")
 			end
@@ -82,13 +84,24 @@ function on_message(self, message_id, message, sender)
 
 
 	elseif message.group == hash("wave") and message_id == hash("contact_point_response") then
-		local pos = go.get_position() + message.normal * (message.distance * 1.4)
-		local angle = message.distance * 1.22
-		if angle <= 0 then angle = 1 end
-		local rot = vmath.quat_rotation_z((math.random(-angle, angle) * math.pi / 180))
+		local max_angle, max_blast_range = 140, 635
+		local pos1 = go.get_position()
+		local pos2 = go.get_position(message.other_id)
+		local rot = go.get(".", "euler.z")
+
+		local distance_temp = math.sqrt( (pos1.x - pos2.x)^2 + (pos1.y - pos2.y)^2 )
+		local distance      = distance_temp / max_blast_range
+		distance = math.max(0, math.min(distance, 1))
+		local angle = max_angle * (1.01 - distance)
+		local pos = pos1 + message.normal * (message.distance * (4.62 * (1.12 - distance)))
+		rot = vmath.quat_rotation_z((rot + math.random(-angle, angle)) * math.pi / 180)
+
+		--print("dist: "..distance_temp.."    dist_range: "..distance.."    angle: "..angle)
+
 		go.cancel_animations(".", "euler")
-		go.set_rotation(rot)
-		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, 0.1, 0, function()
+		go.cancel_animations(".", "scale")
+		go.animate(".", "rotation", go.PLAYBACK_ONCE_FORWARD, rot, go.EASING_OUTSINE, math.random(22, 54) / 100)
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, .16, 0, function()
 			msg.post("#collide_tile", "enable")
 		end)
 		msg.post("#collide_wave", "disable")
@@ -96,20 +109,15 @@ function on_message(self, message_id, message, sender)
 
 	elseif message_id == hash("reveal tile") then
 		if theme_data[current_theme][4] == nil then
-			-- if message.detector then
-			-- 	mark_as_detector()
-			-- else
-				sprite.set_constant("#sprite", "tint", vmath.vector4(1,1,1,1))
-			-- end
+			sprite.set_constant("#sprite", "tint", vmath.vector4(1,1,1,1))
 		else
-			-- if message.detector then
-			-- 	mark_as_detector()
-			-- end
 			sprite.play_flipbook("#sprite", "tile"..current_theme.."_ON")
 		end
 
 		local pos = go.get_position()
 		if message.detector then
+			go.cancel_animations(".", "scale")
+			go.set_scale(self.scale)
 			mark_as_detector()
 			pos.z = pos.z + 0.12
 		else
@@ -124,7 +132,7 @@ function on_message(self, message_id, message, sender)
 		--go.cancel_animations(".", "euler")
 
 
-	elseif message_id == hash("reset tile Z order") then
+	elseif message_id == hash("set Z") then
 		z = 0.1
 
 
@@ -137,7 +145,7 @@ end
 
 
 function mark_as_detector()
-	sprite.set_constant("#sprite", "tint", vmath.vector4(.4, .5, 1.1, 1))
+	sprite.set_constant("#sprite", "tint", vmath.vector4(.25, .5, 1.2, 1))
 	local scale = go.get_scale().x + .1
 	go.animate(".", "scale", go.PLAYBACK_LOOP_PINGPONG, vmath.vector3(scale), go.EASING_INOUTSINE, 1)
 end

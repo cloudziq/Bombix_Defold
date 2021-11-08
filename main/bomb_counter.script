@@ -10,7 +10,6 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("reveal digit") then
 		local rotation
-
 		if message.rot < 0 then
 			rotation = 0 + message.rot
 		else

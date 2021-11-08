@@ -2,7 +2,7 @@
 function init(self)
 	go.set_scale(10)
 	go.animate(".", "scale", go.PLAYBACK_LOOP_PINGPONG, 7.2, go.EASING_INOUTSINE, 2)
-	sprite.set_constant("#sprite", "tint", vmath.vector4(.6, 1, .65, .6))
+	sprite.set_constant("#sprite", "tint", vmath.vector4(.48, 1.2, .64, .68))
 end
 
 

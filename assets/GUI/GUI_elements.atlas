@@ -1,13 +1,17 @@
 images {
   image: "/assets/GUI/button1.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+  sprite_trim_mode: SPRITE_TRIM_MODE_4
 }
 images {
   image: "/assets/GUI/button2.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+  sprite_trim_mode: SPRITE_TRIM_MODE_4
 }
 images {
   image: "/assets/GUI/container.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_4
+}
+images {
+  image: "/assets/buff.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 margin: 0

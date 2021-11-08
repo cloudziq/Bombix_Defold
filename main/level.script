@@ -1,42 +1,30 @@
 
+G_tile_size  = 64   -- in pixels
+G_allow_board_input = true
+
 -- tile status:
 -- 0: unrevealed
 -- 1: contains a bomb
 -- 2: revealed
 -- 3: detector tile
-
-G_allow_board_input = true
 local board_data = {}  --[tile_x][tile_y][ [tile_id, marker_id, bomb_id, counter_id], tile_status, bomb_count]
-
-
-local tile_size  = 64   -- in pixels
 local tiles_left, markers, hold_time
 local x_def, y_def
 local allow_gui_input, restart, detector_mode, touch_id = false, false, false, false, false
 
-
-local board_tiles_x = level_data[current_level][1]
-local board_tiles_y = level_data[current_level][2]
-local bombs_amount = 0
-for i = 1, current_level do
-	bombs_amount  = bombs_amount + level_data[i][3]
-end
+local current_level, board_tiles_x, board_tiles_y, bombs_amount = 0
 
 
 -- local functions:
-local tile_marker, reveal_tiles, game_over, prepare_board, reset_board, gen_num, gen_pos, show_starter_tiles
+local level_prepare, tile_marker, tile_reveal, generate_board, reset_board, gen_num, gen_pos, show_starter_tiles
+local level_complete, game_over
 
 
 
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
-	math.randomseed(socket.gettime())
-	prepare_board()
-
-	for a = 1, 8 do
-		factory.create("/main#BG_factory")
-	end
+	level_prepare()
 end
 
 
@@ -60,8 +48,8 @@ function on_input(self, action_id, action)
 
 	if G_allow_board_input then
 		if action_id ~= nil and action.pressed then
-			tile_num_x = math.ceil((action.x - (window_w - (board_tiles_x * tile_size)) / 2) / tile_size)
-			tile_num_y = math.ceil((action.y - (window_h - (board_tiles_y * tile_size)) / 2) / tile_size)
+			tile_num_x = math.ceil((action.x - (window_w - (board_tiles_x * G_tile_size)) / 2) / G_tile_size)
+			tile_num_y = math.ceil((action.y - (window_h - (board_tiles_y * G_tile_size)) / 2) / G_tile_size)
 			if tile_num_x < 1 or tile_num_x > board_tiles_x or tile_num_y < 1 or tile_num_y > board_tiles_y then
 				tile_exists = false
 			end
@@ -100,7 +88,12 @@ end
 
 
 function on_message(self, message_id, message)
-	if message_id == hash("restart") and allow_gui_input then
+	if message_id == hash("next level") then
+		self.check_input = false
+		level_prepare()
+
+
+	elseif message_id == hash("restart") and allow_gui_input then
 		G_allow_board_input = false
 		allow_gui_input = false
 		reset_board()
@@ -120,13 +113,13 @@ end
 
 function tile_marker(x, y)
 	local id = board_data[x][y][1][2]
-	local cx = ((window_w - (board_tiles_x * tile_size)) / 2) + ((x - 1) * tile_size) + (tile_size / 2)
-	local cy = ((window_h - (board_tiles_y * tile_size)) / 2) + ((y - 1) * tile_size) + (tile_size / 2)
+	local cx = ((window_w - (board_tiles_x * G_tile_size)) / 2) + ((x - 1) * G_tile_size) + (G_tile_size / 2)
+	local cy = ((window_h - (board_tiles_y * G_tile_size)) / 2) + ((y - 1) * G_tile_size) + (G_tile_size / 2)
 
 	if board_data[x][y][2] < 2  then
 		if id == 0 then
 			markers = markers + 1
-			id = factory.create("#tile_marker_factory", vmath.vector3(0,0,0.0002))
+			id = factory.create("#tile_marker_factory", vmath.vector3(0, 0, .0002))
 			board_data[x][y][1][2] = id
 			go.set_parent(id, board_data[x][y][1][1])
 			sound.play("/sound#tile_mark", {speed = 1.8})
@@ -148,19 +141,24 @@ function check_clicked_tile(x, y)  -- called from touch collider
 	if G_allow_board_input then
 		local tile = board_data[x][y][2]
 
+		-- handle tile detector
 		if tile ~= 1 and board_data[x][y][3] ~= 0 then
 			local detector
 			if board_data[x][y][2] == 3 then detector = true else detector = false end
-			msg.post(touch_id, "show range", {board_x = board_tiles_x, board_y = board_tiles_y, size = tile_size, detector = detector})
+			msg.post(touch_id, "show range", {board_x = board_tiles_x, board_y = board_tiles_y, size = G_tile_size, detector = detector})
 		end
 
 		if tile == 0 then
 			reveal_sound_allow = true
-			reveal_tiles(x, y, detector_mode, {})
+			tile_reveal(x, y, detector_mode)
 			sound.play("/sound#plumk", {gain = .4, speed = math.random(80, 120) / 100})
-			detector_mode = false
 		elseif tile == 1 then
 			game_over(x, y)
+		end
+
+		if detector_mode then
+			detector_mode = false
+			msg.post("/gui#level", "remove picked node")
 		end
 	end
 end
@@ -182,9 +180,10 @@ local near_coords_detector = {
 	{-2, -2}, {-1, -2}, { 0, -2}, { 1, -2}, { 2, -2}
 }
 
-function reveal_tiles(x, y, detector, neighbours_table, count)
+function tile_reveal(x, y, detector, neighbours_table, count)
 	local cx, cy, particle_type
 	local detector = detector or false
+	local neighbours_table = neighbours_table or {}
 	local count = count or 0  -- for multi tiles reveal sound only
 
 	tiles_left = tiles_left - 1
@@ -197,7 +196,9 @@ function reveal_tiles(x, y, detector, neighbours_table, count)
 		board_data[x][y][2] = 3
 	end
 
-	if tiles_left == 0 then print("YOU WIN!") end
+	if tiles_left == 0 then
+		level_complete()
+	end
 
 	if reveal_sound_allow and count > 0 then
 		reveal_sound_allow = false
@@ -230,7 +231,7 @@ function reveal_tiles(x, y, detector, neighbours_table, count)
 
 			-- process only unrevealed tiles
 			if board_data[x][y][2] == 0 then
-				reveal_tiles(x, y, false, neighbours_table, count + 1)
+				tile_reveal(x, y, false, neighbours_table, count + 1)
 			end
 		end
 		particle_type = "_multi"
@@ -244,6 +245,42 @@ function reveal_tiles(x, y, detector, neighbours_table, count)
 	end
 
 	msg.post(board_data[x][y][1][1], "reveal tile", {type = particle_type, detector = detector})
+end
+
+
+
+
+function level_prepare()
+	local delay = .2
+	current_level = current_level + 1
+
+	if current_level > 1 then
+		reset_board()
+	end
+
+	timer.delay(delay, false, function()
+		board_tiles_x = level_data[current_level][1]
+		board_tiles_y = level_data[current_level][2]
+
+		bombs_amount = 0
+		for i = 1, current_level do
+			bombs_amount  = bombs_amount + level_data[i][3]
+		end
+
+		if current_level == 1 then generate_board() end
+	end)
+end
+
+
+
+
+function level_complete()
+	G_allow_board_input = false
+	allow_gui_input = false
+	msg.post("/gui#level", "hide display")
+	msg.post("/gui#level", "input switch", {action = false})
+	msg.post("/gui#level_completed", "show")
+	sound.play("/sound#board_completed")
 end
 
 
@@ -273,21 +310,18 @@ function game_over(num_x, num_y)
 				else
 					message = false
 				end
-
-				msg.post(board_data[x][y][1][3], "reveal bombs", {is_clicked_bomb = message})
+				msg.post(board_data[x][y][1][3], "reveal bomb", {is_clicked_bomb = message, rot = go.get(board_data[x][y][1][1], "euler.z")})
 			end
 		end
 	end
-
-	print("RIP")
 end
 
 
 
 
-function prepare_board()
-	local x_def = ((window_w - (board_tiles_x * tile_size)) / 2) + (tile_size / 2)
-	local y_def = ((window_h - (board_tiles_y * tile_size)) / 2) + (tile_size / 2)
+function generate_board()
+	local x_def = ((window_w - (board_tiles_x * G_tile_size)) / 2) + (G_tile_size / 2)
+	local y_def = ((window_h - (board_tiles_y * G_tile_size)) / 2) + (G_tile_size / 2)
 	local x, y, cx, cy = x_def, y_def, bomb
 
 	board_data = {}
@@ -301,10 +335,10 @@ function prepare_board()
 		for b = 1, board_tiles_y do
 			local id = factory.create("#tile_factory", vmath.vector3(x, y, .5))
 			board_data[a][b] = {{id, 0, 0, 0}, 0, 0}
-			y = y + tile_size
+			y = y + G_tile_size
 		end
 		y = y_def
-		x = x + tile_size
+		x = x + G_tile_size
 	end
 
 
@@ -313,9 +347,10 @@ function prepare_board()
 	for bomb = 1, bombs_amount do
 		while board_data[x][y][2] == 1 do x, y = gen_pos() end
 		board_data[x][y][2] = 1
-		cx = x_def + ((x - 1) * tile_size)
-		cy = y_def + ((y - 1) * tile_size)
-		local id = factory.create("#bomb_factory", vmath.vector3(cx, cy + 4, 1))
+		cx = x_def + ((x - 1) * G_tile_size)
+		cy = y_def + ((y - 1) * G_tile_size)
+		local id = factory.create("#bomb_factory", vmath.vector3(0,2,0))
+		go.set_parent(id, board_data[x][y][1][1])
 		board_data[x][y][1][3] = id
 	end
 
@@ -331,7 +366,8 @@ function prepare_board()
 
 
 	timer.delay(1.1, false, function()
-		msg.post("/gui#level", "show display", {bombs = bombs_amount, tiles = tiles_left})
+		msg.post("/gui#level", "show display", {level = current_level, bombs = bombs_amount, tiles = tiles_left})
+		msg.post("/gui#level", "input switch", {action = true})
 		show_starter_tiles()
 		G_allow_board_input = true
 		allow_gui_input = true
@@ -362,11 +398,11 @@ function gen_num(x, y, detector)
 
 	if counter > 0 then
 		local id
-		cx = ((window_w - (board_tiles_x * tile_size)) / 2) + ((x - 1) * tile_size + (tile_size / 2))
-		cy = ((window_h - (board_tiles_y * tile_size)) / 2) + ((y - 1) * tile_size + (tile_size / 2))
+		cx = ((window_w - (board_tiles_x * G_tile_size)) / 2) + ((x - 1) * G_tile_size + (G_tile_size / 2))
+		cy = ((window_h - (board_tiles_y * G_tile_size)) / 2) + ((y - 1) * G_tile_size + (G_tile_size / 2))
 
 		if not detector or board_data[x][y][1][3] == 0 then
-			id = factory.create("/main#counter_factory", vmath.vector3(0,0,0.0001))
+			id = factory.create("/main#counter_factory", vmath.vector3(0,0,.0001))
 			go.set_parent(id, board_data[x][y][1][1])
 		end
 		label.set_text(msg.url(nil, id, "label"), tostring(counter))
@@ -380,15 +416,22 @@ end
 
 
 function show_starter_tiles()
-	for _ = 1, level_data[current_level][4] do
+	local amount, message, add_detector = level_data[current_level][4]
+
+	add_detector = amount > 1 and 1 or 0
+	for a = 1, amount + add_detector do
 		local x, y = gen_pos()
 		while board_data[x][y][3] == 0 or board_data[x][y][2] > 0 do x, y = gen_pos() end
 		board_data[x][y][2] = 2
-		msg.post(board_data[x][y][1][1], "reveal tile")
-		timer.delay(0, false, function()
-			msg.post(board_data[x][y][1][4], "reveal digit", {rot = go.get(board_data[x][y][1][1], "euler.z")})
-		end)
-		tiles_left = tiles_left - 1
+		if a == amount + add_detector and amount > 2 then
+			tile_reveal(x, y, true)
+		else
+			tile_reveal(x, y, false)
+		end
+		-- timer.delay(0, false, function()
+		-- 	msg.post(board_data[x][y][1][4], "reveal digit", {rot = go.get(board_data[x][y][1][1], "euler.z")})
+		-- end)
+		--tiles_left = tiles_left - 1
 	end
 end
 
@@ -410,7 +453,7 @@ function reset_board()
 	if restart then
 		delay = 2.2
 		msg.post(board_data[tile_num_x][tile_num_y][1][3], "detonate bomb")
-		msg.post(board_data[1][1][1][1], "reset tile Z order")
+		msg.post(board_data[1][1][1][1], "set Z")
 
 		for x = 1, board_tiles_x do
 			for y = 1, board_tiles_y do
@@ -423,7 +466,7 @@ function reset_board()
 		delay = .2
 	end
 
-	-- delete all level tiles, bombs and markers:
+	-- delete all level tiles, labels, bombs and markers:
 	timer.delay(delay, false, function()
 		for x = 1, board_tiles_x do
 			for y = 1, board_tiles_y do
@@ -437,7 +480,14 @@ function reset_board()
 		end
 
 		timer.delay(.1, false, function()
-			prepare_board()
+			for _, id in ipairs(BG_table) do
+				msg.post(id, "shuffle BG")
+			end
+			generate_board()
 		end)
 	end)
+
+	if touch_id then
+		msg.post(touch_id, "delete") ; touch_id = nil
+	end
 end
