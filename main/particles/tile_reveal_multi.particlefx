@@ -19,7 +19,7 @@ emitters {
   material: "/builtins/materials/particlefx.material"
   blend_mode: BLEND_MODE_ADD
   particle_orientation: PARTICLE_ORIENTATION_DEFAULT
-  inherit_velocity: 0.0
+  inherit_velocity: 0.6
   max_particle_count: 30
   type: EMITTER_TYPE_CIRCLE
   start_delay: 0.0
@@ -710,7 +710,7 @@ emitters {
   id: "longer"
   mode: PLAY_MODE_ONCE
   duration: 4.0
-  space: EMISSION_SPACE_WORLD
+  space: EMISSION_SPACE_EMITTER
   position {
     x: 0.0
     y: 0.0
@@ -727,7 +727,7 @@ emitters {
   material: "/builtins/materials/particlefx.material"
   blend_mode: BLEND_MODE_ADD
   particle_orientation: PARTICLE_ORIENTATION_DEFAULT
-  inherit_velocity: 0.0
+  inherit_velocity: 8.0
   max_particle_count: 40
   type: EMITTER_TYPE_CIRCLE
   start_delay: 0.0
@@ -795,7 +795,7 @@ emitters {
     key: EMITTER_KEY_PARTICLE_SIZE
     points {
       x: 0.0
-      y: 10.0
+      y: 12.0
       t_x: 1.0
       t_y: 0.0
     }
@@ -926,16 +926,22 @@ emitters {
       t_y: 0.9857161
     }
     points {
-      x: 0.7463188
-      y: 0.32229877
-      t_x: 0.26760328
-      t_y: -0.96352917
+      x: 0.19585547
+      y: 1.0208119
+      t_x: 0.87995595
+      t_y: -0.47505525
+    }
+    points {
+      x: 0.39435282
+      y: 0.6393116
+      t_x: 0.42017913
+      t_y: -0.9074412
     }
     points {
       x: 1.0
       y: 0.0
-      t_x: 0.7390628
-      t_y: -0.67363656
+      t_x: 0.9993347
+      t_y: -0.036471922
     }
   }
   particle_properties {
@@ -969,7 +975,7 @@ emitters {
     key: PARTICLE_KEY_ANGULAR_VELOCITY
     points {
       x: 0.0
-      y: 1.0
+      y: 0.0
       t_x: 1.0
       t_y: 0.0
     }
@@ -977,7 +983,7 @@ emitters {
   size_mode: SIZE_MODE_MANUAL
   start_delay_spread: 0.0
   duration_spread: 0.0
-  stretch_with_velocity: false
+  stretch_with_velocity: true
   start_offset: 0.0
 }
 emitters {

@@ -14,12 +14,27 @@ components {
   }
 }
 components {
-  id: "particles"
+  id: "explosion"
   component: "/main/particles/bomb_explosion.particlefx"
   position {
+    x: 2.0
+    y: 6.0
+    z: 0.0
+  }
+  rotation {
     x: 0.0
     y: 0.0
     z: 0.0
+    w: 1.0
+  }
+}
+components {
+  id: "fuse"
+  component: "/main/particles/bomb_fuse.particlefx"
+  position {
+    x: 12.0
+    y: 55.0
+    z: 0.01
   }
   rotation {
     x: 0.0
@@ -37,8 +52,8 @@ embedded_components {
   "blend_mode: BLEND_MODE_ALPHA\n"
   ""
   position {
-    x: 0.0
-    y: 0.0
+    x: 2.0
+    y: 6.0
     z: 0.0
   }
   rotation {

@@ -4,7 +4,7 @@ size: 64
 antialias: 1
 alpha: 1.0
 outline_alpha: 1.0
-outline_width: 4.0
+outline_width: 5.0
 shadow_alpha: 1.0
 shadow_blur: 22
 shadow_x: 0.0

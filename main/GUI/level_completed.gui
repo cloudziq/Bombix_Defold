@@ -242,7 +242,7 @@ nodes {
 nodes {
   position {
     x: 0.0
-    y: 96.0
+    y: 80.0
     z: 0.0
     w: 1.0
   }
@@ -253,8 +253,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.9
-    y: 0.9
+    x: 1.2
+    y: 1.2
     z: 1.0
     w: 1.0
   }
@@ -272,7 +272,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "GOOD JOB"
+  text: "well done!"
   font: "Vellyc"
   id: "text"
   xanchor: XANCHOR_NONE
@@ -291,7 +291,7 @@ nodes {
     w: 1.0
   }
   adjust_mode: ADJUST_MODE_FIT
-  line_break: false
+  line_break: true
   parent: "LEVEL COMPLETED"
   layer: ""
   inherit_alpha: true

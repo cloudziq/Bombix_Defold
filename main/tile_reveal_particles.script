@@ -1,16 +1,17 @@
 
 function init(self)
-	go.set_scale(.2)
-	timer.delay(.1, false, function() go.delete() end)
+	go.set_scale(.4)
+	-- timer.delay(.1, false, function()
+	-- 	go.delete()
+	-- end)
 end
 
 
 
 
 function on_message(self, message_id, message)
-	if message_id == hash("play particles") then
-		if message.type then
-			particlefx.play("#tile_reveal"..message.type)
-		end
+	if message_id == hash("stop particles") then
+		particlefx.stop("#tile_reveal_multi")
+		go.delete()
 	end
 end

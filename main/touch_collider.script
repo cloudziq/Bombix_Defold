@@ -1,5 +1,7 @@
 
 function init(self)
+	self.collide = true
+
 	msg.post("#sprite", "disable")
 	--print("touch        : "..go.get_id())
 end
@@ -8,13 +10,18 @@ end
 
 
 function on_message(self, message_id, message, sender)
-	if message_id == hash("disable collider") then
-		msg.post("#tile_collide", "disable")
+	if message.group == hash("tile") and self.collide then
+		self.collide = false
+		msg.post("/main#level", "check clicked tile")
+
+
 
 
 	elseif message_id == hash("delete") then
 		go.delete()
 		--print("touch deleted: "..go.get_id())
+
+
 
 
 	elseif message_id == hash("show range") then

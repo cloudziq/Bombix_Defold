@@ -1,10 +1,11 @@
 
 -- local variables
 local z
-local dark_color = vmath.vector4(.18, .20, .22, 1)
+local dark_color               = vmath.vector4(.18, .20, .22, 1)
+local detector_highlight_color = vmath.vector4(1,1,4,1)
 
 -- local functions:
-local mark_as_detector, animate_tile
+local mark_as_detector, tile_tint, animate_tile
 
 
 
@@ -37,7 +38,6 @@ function init(self)
 			go.set(".", "euler.z", math.random(0,360))
 		end
 	end
-		
 
 	self.pos          = go.get_position()
 	self.rot          = go.get(".", "euler.z")
@@ -53,14 +53,8 @@ function init(self)
 	go.animate(".", "euler.z", go.PLAYBACK_ONCE_FORWARD, self.rot, go.EASING_OUTQUINT, 1)
 	go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale, go.EASING_OUTQUINT, .4, 0, function()
 		go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale / 2, go.EASING_INQUINT, .6, 0, function()
-			go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale, go.EASING_OUTQUINT, math.random(1, 6))
-
-			if theme_data[current_theme][4] == nil then
-				sprite.set_constant("#sprite", "tint", dark_color)
-			else
-				sprite.play_flipbook("#sprite", "tile"..current_theme.."_OFF")
-			end
-
+			go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale, go.EASING_OUTQUINT, math.random(1, 8))
+			tile_tint(0, .2)
 			animate_tile(self, false)
 		end)
 	end)
@@ -70,17 +64,14 @@ end
 
 
 function on_message(self, message_id, message, sender)
-	if message.group == hash("touch") then
-		msg.post(message.other_id, "disable collider")
-		check_clicked_tile(tile_num_x, tile_num_y)
-
-
-	elseif message.group == hash("tile") then
+	if message.group == hash("tile") then
 		local pos = go.get_position()
 		msg.post("#collide_tile", "disable")
 		pos.z = z
 		z = z + 0.001
 		go.set_position(pos)
+
+
 
 
 	elseif message.group == hash("wave") and message_id == hash("contact_point_response") then
@@ -100,21 +91,23 @@ function on_message(self, message_id, message, sender)
 
 		go.cancel_animations(".", "euler")
 		go.cancel_animations(".", "scale")
-		go.animate(".", "rotation", go.PLAYBACK_ONCE_FORWARD, rot, go.EASING_OUTSINE, math.random(22, 54) / 100)
-		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_LINEAR, .16, 0, function()
+		local rotate_time = .6 * (1 - distance)
+		local r_min = (rotate_time - rotate_time / 20) * 100
+		local r_max = (rotate_time + rotate_time / 20) * 100
+		go.animate(".", "rotation", go.PLAYBACK_ONCE_FORWARD, rot, go.EASING_OUTSINE, math.random(r_min, r_max) / 100)
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_OUTSINE, .32, 0, function()
 			msg.post("#collide_tile", "enable")
 		end)
 		msg.post("#collide_wave", "disable")
 
 
-	elseif message_id == hash("reveal tile") then
-		if theme_data[current_theme][4] == nil then
-			sprite.set_constant("#sprite", "tint", vmath.vector4(1,1,1,1))
-		else
-			sprite.play_flipbook("#sprite", "tile"..current_theme.."_ON")
-		end
 
+
+	elseif message_id == hash("reveal tile") then
 		local pos = go.get_position()
+
+		tile_tint(1, .44)
+
 		if message.detector then
 			go.cancel_animations(".", "scale")
 			go.set_scale(self.scale)
@@ -123,18 +116,32 @@ function on_message(self, message_id, message, sender)
 		else
 			pos.z = pos.z + 0.1
 		end
+
 		go.cancel_animations(".", "position")
 		go.set_position(vmath.vector3(pos.x, pos.y, pos.z))
 		animate_tile(self, true)
 
-		local id = factory.create("/main#tile_reveal_particle_factory")
-		msg.post(id, "play particles", {type = message.type})
-		--go.cancel_animations(".", "euler")
+		local id = factory.create("/main#tile_reveal_particle_factory", vmath.vector3(0))
+		go.set_parent(id, message.parent)
+		table.insert(tile_particles_table, id)
+		particlefx.play(msg.url(nil, id, "tile_reveal"..message.type))
+
+
+
+
+	elseif message_id == hash("add highlight") then
+		local color = vmath.vector4(detector_highlight_color)
+		color.z = color.z * theme_data[current_theme][5]
+		go.animate("#sprite", "tint", go.PLAYBACK_LOOP_PINGPONG, color, go.EASING_INOUTSINE, .8)
+
+	elseif message_id == hash("remove highlight") then
+		tile_tint(message.type)
+
+
 
 
 	elseif message_id == hash("set Z") then
 		z = 0.1
-
 
 	elseif message_id == hash("delete") then
 		go.delete()
@@ -145,9 +152,34 @@ end
 
 
 function mark_as_detector()
-	sprite.set_constant("#sprite", "tint", vmath.vector4(.25, .5, 1.2, 1))
+	go.cancel_animations("#sprite", "tint")
+	sprite.set_constant("#sprite", "tint", vmath.vector4(.25, .4, 2.2, 1))
 	local scale = go.get_scale().x + .1
 	go.animate(".", "scale", go.PLAYBACK_LOOP_PINGPONG, vmath.vector3(scale), go.EASING_INOUTSINE, 1)
+end
+
+
+
+
+-- type:
+-- 0 - unrevealed
+-- 1 - revealed
+function tile_tint(type, anim_time)
+	local anim_time = anim_time or 1
+
+	if type == 0 then
+		if theme_data[current_theme][4] == nil then
+			go.animate("#sprite", "tint", go.PLAYBACK_ONCE_FORWARD, dark_color, go.EASING_INOUTSINE, anim_time)
+		else
+			go.animate("#sprite", "tint", go.PLAYBACK_ONCE_FORWARD, vmath.vector4(1), go.EASING_INOUTSINE, anim_time)
+			sprite.play_flipbook("#sprite", "tile"..current_theme.."_OFF")
+		end
+	else
+		go.animate("#sprite", "tint", go.PLAYBACK_ONCE_FORWARD, vmath.vector4(1), go.EASING_INOUTSINE, anim_time)
+		if theme_data[current_theme][4] ~= nil then
+			sprite.play_flipbook("#sprite", "tile"..current_theme.."_ON")
+		end
+	end
 end
 
 

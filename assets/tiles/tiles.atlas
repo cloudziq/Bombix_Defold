@@ -35,10 +35,6 @@ images {
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
-  image: "/assets/tiles/tile5_4.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
-}
-images {
   image: "/assets/tiles/tile6_1.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
@@ -151,7 +147,7 @@ images {
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
-  image: "/assets/tiles/tile24.png"
+  image: "/assets/tiles/tile24_ON.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
@@ -168,6 +164,18 @@ images {
 }
 images {
   image: "/assets/tiles/tile18_OFF.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/assets/tiles/tile27_ON.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/assets/tiles/tile24_OFF.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/assets/tiles/tile27_OFF.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 margin: 0

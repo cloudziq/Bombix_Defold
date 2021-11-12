@@ -60,7 +60,7 @@ max_count = 320
 max_particle_count = 12000
 
 [graphics]
-max_draw_calls = 512
+max_draw_calls = 64
 texture_profiles = /main/default.texture_profiles
 
 [collection]
