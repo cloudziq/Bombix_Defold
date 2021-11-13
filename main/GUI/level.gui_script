@@ -28,18 +28,18 @@ function on_message(self, message_id, message)
 		gui.set_text(gui.get_node("tile amount"), tostring(message.tiles))
 		gui.set_color(gui.get_node("tile detector"), vmath.vector4(.4, .5, 1, 1))
 
-		if theme_data[current_theme][2] == 1 then
-			if theme_data[current_theme][4] == nil then
-				gui.play_flipbook(gui.get_node("tile icon"), "tile"..current_theme)
-				gui.play_flipbook(gui.get_node("tile detector"),  "tile"..current_theme)
+		if theme_data[G_theme][1] == 1 then
+			if theme_data[G_theme][3] == nil then
+				gui.play_flipbook(gui.get_node("tile icon"), "tile"..G_theme)
+				gui.play_flipbook(gui.get_node("tile detector"),  "tile"..G_theme)
 			else
-				gui.play_flipbook(gui.get_node("tile icon"), "tile"..current_theme.."_ON")
-				gui.play_flipbook(gui.get_node("tile detector"),  "tile"..current_theme.."_ON")
+				gui.play_flipbook(gui.get_node("tile icon"), "tile"..G_theme.."_ON")
+				gui.play_flipbook(gui.get_node("tile detector"),  "tile"..G_theme.."_ON")
 			end
 		else
-			local num = math.random(1, theme_data[current_theme][2])
-			gui.play_flipbook(gui.get_node("tile icon"), "tile"..current_theme.."_"..num)
-			gui.play_flipbook(gui.get_node("tile detector"),  "tile"..current_theme.."_"..num)
+			local num = math.random(1, theme_data[G_theme][1])
+			gui.play_flipbook(gui.get_node("tile icon"), "tile"..G_theme.."_"..num)
+			gui.play_flipbook(gui.get_node("tile detector"),  "tile"..G_theme.."_"..num)
 		end
 
 		gui.set_text(gui.get_node("level number"), tostring(message.level))

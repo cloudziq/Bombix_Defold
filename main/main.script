@@ -8,38 +8,38 @@ local load_config
 -- 1: can be rotated by 90
 -- 2: full random rotation
 
---  1                   2            3               4                   5:
---  "name":             variants:    rotate_type:    ON/OFF_variants:    highlight multiplier:
+--  1            2               3                   4:
+--  variants:    rotate_type:    ON/OFF_variants:    highlight multiplier:
 theme_data = {
-	{"metal tiles",     1,           1,              nil,                1 },               -- 1
-	{"asphalt",         1,           1,              nil,                1 },               -- 2
-	{"clean tiles",     1,           1,              nil,                1 },               -- 3
-	{"cartoon",         3,           1,              nil,                2 },               -- 4
-	{"wooden",          3,           1,              nil,                1 },               -- 5
-	{"old bricks",      4,           1,              nil,                1 },               -- 6
-	{"marble",          1,           1,              nil,                1 },               -- 7
-	{"stones",          1,           1,              nil,                1 },               -- 8
-	{"circles",         1,           1,              nil,                1 },               -- 9
-	{"rounded tiles",   1,           1,              nil,                1 },               -- 10
-	{"light tiles 1",   1,           1,              true,               2 },               -- 11
-	{"plasma",          1,           2,              nil,                .5},                -- 12
-	{"heart",           1,           1,              true,               2 },               -- 13
-	{"flower",          1,           2,              nil,                2 },               -- 14
-	{"dirty glass",     3,           1,              nil,                1 },               -- 15
-	{"moon",            1,           2,              true,               1 },               -- 16
-	{"cartoon 2",       1,           1,              true,               2 },               -- 17
-	{"soft tiles",      1,           1,              true,               2 },               -- 18
-	{"CD",              1,           2,              nil,                1 },               -- 19
-	{"octagon",         1,           2,              nil,                .5},               -- 20
-	{"balls 1",         1,           2,              nil,                1 },               -- 21
-	{"balls 2",         1,           2,              nil,                1 },               -- 22
-	{"mosaic glass",    1,           1,              nil,                1 },               -- 23
-	{"hard tile",       1,           1,              true,               4 },               -- 24
-	{"light tiles 2",   1,           2,              true,               4 },               -- 25
-	{"cloud puff",      1,           2,              nil,                1 },               -- 26
-	{"jashin",          1,           2,              true,               12},               -- 27
+	{1,           1,              nil,                1 },               -- 1
+	{1,           1,              nil,                1 },               -- 2
+	{1,           1,              nil,                1 },               -- 3
+	{3,           1,              nil,                2 },               -- 4
+	{3,           1,              nil,                1 },               -- 5
+	{4,           1,              nil,                1 },               -- 6
+	{1,           1,              nil,                1 },               -- 7
+	{1,           1,              nil,                1 },               -- 8
+	{1,           1,              nil,                1 },               -- 9
+	{1,           1,              nil,                1 },               -- 10
+	{1,           1,              true,               2 },               -- 11
+	{1,           2,              nil,                .5},                -- 12
+	{1,           1,              true,               2 },               -- 13
+	{1,           2,              nil,                2 },               -- 14
+	{3,           1,              nil,                1 },               -- 15
+	{1,           2,              true,               1 },               -- 16
+	{1,           1,              true,               2 },               -- 17
+	{1,           1,              true,               2 },               -- 18
+	{1,           2,              nil,                1 },               -- 19
+	{1,           2,              nil,                .5},               -- 20
+	{1,           2,              nil,                1 },               -- 21
+	{1,           2,              nil,                1 },               -- 22
+	{1,           1,              nil,                1 },               -- 23
+	{1,           1,              true,               4 },               -- 24
+	{1,           2,              true,               4 },               -- 25
+	{1,           2,              nil,                1 },               -- 26
+	{1,           2,              true,               12},               -- 27
 }
-current_theme = 17
+--current_theme = 26
 
 
 -- max board size: 10x16
@@ -180,12 +180,15 @@ function load_config()
 	local file = sys.get_save_file("Bombix", "config.dzq")
 	local data = sys.load(file)
 
-	if data.G_sound_vol == nil then G_sound_vol = 1 else
-		G_sound_vol = data.G_sound_vol
+	if data.sound_vol == nil then G_sound_vol = 1 else
+		G_sound_vol = data.sound_vol
 	end
-	if data.G_music_vol == nil then G_music_vol = .5 else
-		G_music_vol = data.G_music_vol
+	if data.music_vol == nil then G_music_vol = .5 else
+		G_music_vol = data.music_vol
 	end
-	--sound.set_group_gain("sound", G_sound_vol)
+	if data.theme == nil then G_theme = 1 else
+		G_theme = data.theme
+	end
+	sound.set_group_gain("sound", G_sound_vol)
 	sound.set_group_gain("music", G_music_vol)
 end

@@ -19,17 +19,17 @@ function init(self)
 	msg.post("#collide_tile", "disable")
 	msg.post("#collide_wave", "enable")
 
-	if theme_data[current_theme][2] == 1 then
-		if theme_data[current_theme][4] == nil then
-			sprite.play_flipbook("#sprite", "tile"..current_theme)
+	if theme_data[G_theme][1] == 1 then
+		if theme_data[G_theme][3] == nil then
+			sprite.play_flipbook("#sprite", "tile"..G_theme)
 		else
-			sprite.play_flipbook("#sprite", "tile"..current_theme.."_ON")
+			sprite.play_flipbook("#sprite", "tile"..G_theme.."_ON")
 		end
 	else
-		sprite.play_flipbook("#sprite", "tile"..current_theme.."_"..math.random(1, theme_data[current_theme][2]))
+		sprite.play_flipbook("#sprite", "tile"..G_theme.."_"..math.random(1, theme_data[G_theme][1]))
 	end
 
-	local data = theme_data[current_theme][3]
+	local data = theme_data[G_theme][2]
 	if data ~= nil then
 		if data == 1 then
 			local angle = math.random(1, 2) >= 2 and 90 or 0
@@ -131,7 +131,7 @@ function on_message(self, message_id, message, sender)
 
 	elseif message_id == hash("add highlight") then
 		local color = vmath.vector4(detector_highlight_color)
-		color.z = color.z * theme_data[current_theme][5]
+		color.z = color.z * theme_data[G_theme][4]
 		go.animate("#sprite", "tint", go.PLAYBACK_LOOP_PINGPONG, color, go.EASING_INOUTSINE, .8)
 
 	elseif message_id == hash("remove highlight") then
@@ -168,16 +168,16 @@ function tile_tint(type, anim_time)
 	local anim_time = anim_time or 1
 
 	if type == 0 then
-		if theme_data[current_theme][4] == nil then
+		if theme_data[G_theme][3] == nil then
 			go.animate("#sprite", "tint", go.PLAYBACK_ONCE_FORWARD, dark_color, go.EASING_INOUTSINE, anim_time)
 		else
 			go.animate("#sprite", "tint", go.PLAYBACK_ONCE_FORWARD, vmath.vector4(1), go.EASING_INOUTSINE, anim_time)
-			sprite.play_flipbook("#sprite", "tile"..current_theme.."_OFF")
+			sprite.play_flipbook("#sprite", "tile"..G_theme.."_OFF")
 		end
 	else
 		go.animate("#sprite", "tint", go.PLAYBACK_ONCE_FORWARD, vmath.vector4(1), go.EASING_INOUTSINE, anim_time)
-		if theme_data[current_theme][4] ~= nil then
-			sprite.play_flipbook("#sprite", "tile"..current_theme.."_ON")
+		if theme_data[G_theme][3] ~= nil then
+			sprite.play_flipbook("#sprite", "tile"..G_theme.."_ON")
 		end
 	end
 end

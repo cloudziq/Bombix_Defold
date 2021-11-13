@@ -1,5 +1,5 @@
 [project]
-title = Mini Sapper
+title = Bombix
 developer = Dziq
 dependencies#0 = https://github.com/subsoap/defos/archive/v2.5.0.zip
 dependencies#1 = https://github.com/subsoap/chip-sounds/archive/master.zip
@@ -60,7 +60,7 @@ max_count = 320
 max_particle_count = 12000
 
 [graphics]
-max_draw_calls = 64
+max_draw_calls = 128
 texture_profiles = /main/default.texture_profiles
 
 [collection]

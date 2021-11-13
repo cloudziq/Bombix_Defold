@@ -21,6 +21,17 @@ function init(self)
 	local node = gui.get_node("bomb")
 	local rot = gui.get_rotation(node)
 	animate_bomb(node, rot.z)
+	gui.animate(gui.get_node("BG"),  "scale", vmath.vector3(.98, .99, 1), go.EASING_INOUTSINE, 16, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("BG2_1"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 14, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("BG2_2"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 18, 4, nil, gui.PLAYBACK_LOOP_PINGPONG)
+
+	local node = gui.get_node("BG2_1") ; local color = gui.get_color(node)
+	color.w = .6 ; gui.set_color(node, color)
+	gui.animate(node, "color.w", 0, go.EASING_INOUTSINE, 12, 1, nil, gui.PLAYBACK_LOOP_PINGPONG)
+
+	local node = gui.get_node("BG2_2") ; local color = gui.get_color(node)
+	color.w = 0 ; gui.set_color(node, color)
+	gui.animate(node, "color.w", .6, go.EASING_INOUTSINE, 12, 1, nil, gui.PLAYBACK_LOOP_PINGPONG)
 end
 
 

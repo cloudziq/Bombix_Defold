@@ -23,13 +23,14 @@ function on_message(self, message_id, message)
 		go.cancel_animations(".", "position")
 		go.cancel_animations(".", "scale")
 		factory.create("/main#wave_factory")
-		sound.play("/sound#explode"..math.random(1, 2), {speed = proxy_speed})
-		sound.play("/sound#explode_echo"..math.random(1, 2), {speed = proxy_speed, delay = .44})
+		sound.play("/sound#explode"..math.random(1, 2), {speed = proxy_speed, gain = .6})
+		sound.play("/sound#explode_echo"..math.random(1, 2), {speed = proxy_speed, delay = .44, gain = .6})
 		go.set_parent(".", nil)
 		go.set_position(vmath.vector3(pos.x, pos.y, .9))
+		go.set(".", "euler.z", math.random(360))
 		go.set_scale(1.62)
-		particlefx.play("#explosion")
 		particlefx.stop("#fuse")
+		particlefx.play("#explosion")
 
 
 	elseif message_id == hash("reveal bomb") then

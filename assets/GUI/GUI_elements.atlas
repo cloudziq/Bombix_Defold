@@ -1,14 +1,14 @@
 images {
   image: "/assets/GUI/button1.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_4
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/GUI/button2.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_4
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/GUI/container.png"
-  sprite_trim_mode: SPRITE_TRIM_MODE_4
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
   image: "/assets/buff.png"
@@ -24,6 +24,10 @@ images {
 }
 images {
   image: "/assets/GUI/slider_pointer.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/assets/GUI/arrow.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 margin: 0

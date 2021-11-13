@@ -1,4 +1,4 @@
-sound: "/assets/sfx/button_press.wav"
+sound: "/assets/sfx/menu_confirm.wav"
 looping: 0
 group: "sound"
 gain: 1.25
