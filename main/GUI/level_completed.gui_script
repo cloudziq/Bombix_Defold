@@ -18,7 +18,7 @@ end
 function on_message(self, message_id, message)
 	if message_id == hash("show") then
 		gui.set_enabled(gui.get_node("BG"), true)
-		gui.animate(gui.get_node("BG"), "color.w", 1, gui.EASING_INSINE, .4)
+		gui.animate(gui.get_node("BG"), "color.w", .25, gui.EASING_INSINE, .4)
 		timer.delay(1.6, false, function()
 			allow_input = true
 			gui.reset_nodes()

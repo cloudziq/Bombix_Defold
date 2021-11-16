@@ -211,7 +211,7 @@ nodes {
 }
 nodes {
   position {
-    x: 4.0
+    x: -46.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -329,7 +329,7 @@ nodes {
 }
 nodes {
   position {
-    x: 95.0
+    x: 45.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -526,9 +526,9 @@ nodes {
     w: 1.0
   }
   color {
-    x: 0.5019608
-    y: 0.6
-    z: 1.0
+    x: 1.0
+    y: 1.0
+    z: 0.8
     w: 1.0
   }
   type: TYPE_TEXT
@@ -565,7 +565,7 @@ nodes {
 }
 nodes {
   position {
-    x: 582.0
+    x: 609.0
     y: 1124.0
     z: 0.0
     w: 1.0
@@ -577,13 +577,13 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.0
-    y: 1.0
+    x: 1.5
+    y: 1.5
     z: 1.0
     w: 1.0
   }
   size {
-    x: 116.0
+    x: 72.0
     y: 58.0
     z: 0.0
     w: 1.0
@@ -596,7 +596,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_ALPHA
-  texture: "GUI_elements/container"
+  texture: ""
   id: "special tiles_C"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -605,21 +605,21 @@ nodes {
   layer: ""
   inherit_alpha: true
   slice9 {
-    x: 34.0
+    x: 36.0
     y: 0.0
-    z: 34.0
+    z: 36.0
     w: 0.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
-  alpha: 0.8
+  alpha: 0.0
   template_node_child: false
   size_mode: SIZE_MODE_MANUAL
 }
 nodes {
   position {
-    x: -22.0
+    x: 0.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -658,7 +658,7 @@ nodes {
   adjust_mode: ADJUST_MODE_FIT
   parent: "special tiles_C"
   layer: ""
-  inherit_alpha: true
+  inherit_alpha: false
   slice9 {
     x: 0.0
     y: 0.0
@@ -674,7 +674,7 @@ nodes {
 }
 nodes {
   position {
-    x: 22.0
+    x: 0.0
     y: 0.0
     z: 0.0
     w: 1.0
@@ -686,14 +686,14 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 0.28
-    y: 0.28
+    x: 0.68
+    y: 0.68
     z: 1.0
     w: 1.0
   }
   size {
-    x: 128.0
-    y: 128.0
+    x: 52.0
+    y: 52.0
     z: 0.0
     w: 1.0
   }
@@ -704,16 +704,16 @@ nodes {
     w: 1.0
   }
   type: TYPE_BOX
-  blend_mode: BLEND_MODE_ALPHA
-  texture: "tiles/tile1"
-  id: "bomb detector"
+  blend_mode: BLEND_MODE_MULT
+  texture: "detector/anim"
+  id: "detector anim"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_CENTER
   adjust_mode: ADJUST_MODE_FIT
   parent: "special tiles_C"
   layer: ""
-  inherit_alpha: true
+  inherit_alpha: false
   slice9 {
     x: 0.0
     y: 0.0

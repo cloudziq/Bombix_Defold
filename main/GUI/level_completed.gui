@@ -7,6 +7,10 @@ textures {
   name: "GUI_elements"
   texture: "/assets/GUI/GUI_elements.atlas"
 }
+textures {
+  name: "tiles"
+  texture: "/assets/tiles/tiles.atlas"
+}
 background_color {
   x: 0.0
   y: 0.0
@@ -27,26 +31,26 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 2.0
-    y: 2.0
+    x: 1.0
+    y: 1.0
     z: 1.0
     w: 1.0
   }
   size {
-    x: 320.0
-    y: 576.0
+    x: 640.0
+    y: 1152.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 0.0
-    y: 0.0
-    z: 0.0
+    x: 0.6
+    y: 0.6
+    z: 0.6
     w: 1.0
   }
   type: TYPE_BOX
-  blend_mode: BLEND_MODE_MULT
-  texture: "GUI_elements/buff"
+  blend_mode: BLEND_MODE_ALPHA
+  texture: "tiles/tile18_ON"
   id: "BG"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -55,17 +59,17 @@ nodes {
   layer: ""
   inherit_alpha: true
   slice9 {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 0.0
+    x: 64.0
+    y: 64.0
+    z: 64.0
+    w: 64.0
   }
   clipping_mode: CLIPPING_MODE_NONE
   clipping_visible: true
   clipping_inverted: false
-  alpha: 1.0
+  alpha: 0.25
   template_node_child: false
-  size_mode: SIZE_MODE_AUTO
+  size_mode: SIZE_MODE_MANUAL
 }
 nodes {
   position {

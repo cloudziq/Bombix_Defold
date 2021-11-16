@@ -19,7 +19,7 @@ components {
   position {
     x: 2.0
     y: 6.0
-    z: 0.0
+    z: 0.02
   }
   rotation {
     x: 0.0

@@ -1,0 +1,24 @@
+
+function init(self)
+	gui.set_enabled(gui.get_node("overlay"), false)
+end
+
+
+
+
+function on_message(self, message_id, message)
+	if message_id == hash("show lose overlay") then
+		local node = gui.get_node("overlay")
+
+		gui.set_enabled(node, true)
+		gui.set_scale(node, vmath.vector3(math.random(4, 8)))
+		gui.set_rotation(node, vmath.vector3(0, 0, math.random(360)))
+		gui.animate(node, "color.w", 0, go.EASING_LINEAR, .01, 0, function()
+			gui.animate(node, "color.w", 1, go.EASING_LINEAR, .8, .32, function()
+				gui.animate(node, "color.w", 0, go.EASING_OUTSINE, 3.2, 1.46, function()
+					gui.set_enabled(node, false)
+				end)
+			end)
+		end)
+	end
+end

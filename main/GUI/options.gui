@@ -108,7 +108,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_MULT
-  texture: "main_GUI_elements/buff"
+  texture: "main_GUI_elements/dirty"
   id: "BG_overlay"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
@@ -326,7 +326,7 @@ nodes {
   }
   type: TYPE_BOX
   blend_mode: BLEND_MODE_MULT
-  texture: "main_GUI_elements/buff"
+  texture: "main_GUI_elements/dirty"
   id: "overlay"
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE

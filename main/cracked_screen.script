@@ -1,0 +1,12 @@
+
+function init(self)
+	local pos = go.get_position()
+	go.set_position(vmath.vector3(pos.x, pos.y, 0.1))
+	go.set_scale(math.random(20, 28) / 10)
+	go.set(".", "euler.z", math.random(0, 360))
+
+	go.animate("#sprite", "tint.w", go.PLAYBACK_ONCE_FORWARD, .2, go.EASING_OUTCUBIC, .2)
+	go.animate("#sprite", "tint.w", go.PLAYBACK_ONCE_FORWARD, 0, go.EASING_OUTCUBIC, 1.2, 2, function()
+		go.delete()
+	end)
+end

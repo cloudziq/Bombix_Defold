@@ -10,7 +10,7 @@ G_allow_board_input = true    -- allows clicking on board and pick special tiles
 local board_data = {}  --[tile_x][tile_y][ [tile_id, marker_id, bomb_id, counter_id], tile_status, bomb_count]
 local tiles_left, markers, hold_time
 local x_def, y_def
-local allow_gui_input, restart, detector_mode, touch_id = false, false, false, false, false
+local allow_gui_input, lose, detector_mode, touch_id = false, false, false, false, false
 
 local current_level, board_tiles_x, board_tiles_y, bombs_amount = 0   -- substract 1
 local starting_level = current_level + 1
@@ -167,8 +167,7 @@ function check_clicked_tile(x, y)    -- called from touch_collider
 
 		if detector_mode and tile < 2 then
 			msg.post("/main#level", "detector")
-			msg.post("/gui#level", "hide special tile")
-			msg.post("/gui#level", "special tiles display", {state = false})
+			msg.post("/gui#level", "special tiles display", {state = "hide"})
 		end
 	end
 end
@@ -186,11 +185,6 @@ function highlight_tiles(cond)
 					msg.post(board_data[x][y][1][1], "add highlight")
 				else
 					local type = board_data[x][y][2] < 2 and 0 or 1
-					-- if board_data[x][y][2] < 2 then
-					-- 	type = 0
-					-- else
-					-- 	type = 1
-					-- end
 					msg.post(board_data[x][y][1][1], "remove highlight", {type = type})
 				end
 			end
@@ -311,8 +305,6 @@ function level_complete()
 	G_allow_board_input = false
 	allow_gui_input = false
 
-	stop_particles()
-
 	for x = 1, board_tiles_x do
 		for y = 1, board_tiles_y do
 			local id = board_data[x][y][1][1]
@@ -337,19 +329,22 @@ end
 
 
 function game_over(num_x, num_y)
-	local x, y, message
-	restart             = true
+	local x, y, message, use_tint
+	lose                = true
 	G_allow_board_input = false
+
+	msg.post("/gui#level", "special tiles display", {state = "hide"})
 
 	for x = 1, board_tiles_x do
 		for y = 1, board_tiles_y do
 
 			-- color the markers as correctly placed or not
-			if board_data[x][y][1][2] ~= 0 then
+			local tile = board_data[x][y][1][2]
+			if tile ~= 0 then
 				if board_data[x][y][2] == 1 then
-					msg.post(board_data[x][y][1][2], "mark as correct")
+					msg.post(tile, "mark as correct")
 				else
-					msg.post(board_data[x][y][1][2], "mark as incorrect")
+					msg.post(tile, "mark as incorrect")
 				end
 			end
 
@@ -359,8 +354,10 @@ function game_over(num_x, num_y)
 					message = true
 				else
 					message = false
+					-- tint properly marked bombs:
+					use_tint = board_data[x][y][1][2] ~= 0 and true or false
 				end
-				msg.post(board_data[x][y][1][3], "reveal bomb", {is_clicked_bomb = message, rot = go.get(board_data[x][y][1][1], "euler.z")})
+				msg.post(board_data[x][y][1][3], "reveal bomb", {is_clicked_bomb = message, rot = go.get(board_data[x][y][1][1], "euler.z"), tint = use_tint})
 			end
 		end
 	end
@@ -424,7 +421,7 @@ function generate_board()
 		allow_gui_input = true
 	end)
 
-	restart       = false
+	lose          = false
 	detector_mode = false
 end
 
@@ -453,7 +450,7 @@ function gen_num(x, y, detector)
 		cy = ((window_h - (board_tiles_y * G_tile_size)) / 2) + ((y - 1) * G_tile_size + (G_tile_size / 2))
 
 		if not detector or board_data[x][y][1][3] == 0 then
-			id = factory.create("/main#counter_factory", vmath.vector3(0,0,.0001))
+			id = factory.create("/main#counter_factory", vmath.vector3(0, 0, .0001))
 			go.set_parent(id, board_data[x][y][1][1])
 		end
 		label.set_text(msg.url(nil, id, "label"), tostring(counter))
@@ -508,12 +505,11 @@ function reset_board()
 	local x, y, item, id
 	local delay
 
-	if restart then
-		delay = 2.2
+	if lose then
+		delay = 2.222
 		msg.post(board_data[tile_num_x][tile_num_y][1][3], "detonate bomb")
+		msg.post("/gui#dirty_overlay", "show lose overlay")
 		msg.post(board_data[1][1][1][1], "set Z")
-
-		stop_particles()
 
 		for x = 1, board_tiles_x do
 			for y = 1, board_tiles_y do
@@ -546,6 +542,8 @@ function reset_board()
 			generate_board()
 		end)
 	end)
+
+	stop_particles()
 
 	if touch_id then
 		msg.post(touch_id, "delete") ; touch_id = nil

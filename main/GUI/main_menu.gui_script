@@ -10,7 +10,7 @@ function init(self)
 	sound.play("/sound#menu_music")
 
 	BG_table = {}
-	for a = 1, 8 do
+	for a = 1, 10 do
 		local id = factory.create("/main#BG_factory")
 		table.insert(BG_table, msg.url(nil, id, nil))
 	end
@@ -52,7 +52,7 @@ function on_input(self, action_id, action)
 		end
 
 		if gui.pick_node(gui.get_node("options_C"), action.x, action.y) then
-			msg.post("/gui#options", "show")
+			msg.post("/sub_gui#options", "show")
 			--msg.post(".", "disable")
 		end
 	end

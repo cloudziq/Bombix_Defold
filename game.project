@@ -82,7 +82,7 @@ max_count = 4
 max_count = 4
 
 [factory]
-max_count = 8
+max_count = 16
 
 [collection_proxy]
 max_count = 4

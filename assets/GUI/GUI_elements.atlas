@@ -11,7 +11,7 @@ images {
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
-  image: "/assets/buff.png"
+  image: "/assets/GUI/dirty.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 images {
@@ -28,6 +28,10 @@ images {
 }
 images {
   image: "/assets/GUI/arrow.png"
+  sprite_trim_mode: SPRITE_TRIM_MODE_OFF
+}
+images {
+  image: "/assets/GUI/broken_glass.png"
   sprite_trim_mode: SPRITE_TRIM_MODE_OFF
 }
 margin: 0
