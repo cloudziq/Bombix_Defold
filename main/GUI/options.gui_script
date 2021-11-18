@@ -4,6 +4,8 @@ local slider_active_music = false
 
 local anim_back_node = false
 
+local restore_prev, prev_menu
+
 
 -- local functions:
 local slider, theme_selector
@@ -13,6 +15,11 @@ local slider, theme_selector
 
 function init(self)
 	msg.post("#", "disable")
+	gui.animate(gui.get_node("BG"),  "scale", vmath.vector3(.98, .99, 1), go.EASING_INOUTSINE, 16, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("BG2_1"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 14, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("BG2_2"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 18, 4, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("arrow_L"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("arrow_R"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
 end
 
 
@@ -43,11 +50,11 @@ function on_input(self, action_id, action)
 
 	if slider_active == true then
 		if slider_active_sound == true then
-			G_sound_vol = string.format("%.2f", slider("pointer_sound", -175, 175, action))
-			sound.set_group_gain("sound", G_sound_vol)
+			G_settings.sound_vol = string.format("%.2f", slider("pointer_sound", -175, 175, action))
+			sound.set_group_gain("sound", G_settings.sound_vol)
 		elseif slider_active_music == true then
-			G_music_vol = string.format("%.2f", slider("pointer_music", -175, 175, action))
-			sound.set_group_gain("music", G_music_vol)
+			G_settings.music_vol = string.format("%.2f", slider("pointer_music", -175, 175, action))
+			sound.set_group_gain("music", G_settings.music_vol)
 		end
 	end
 
@@ -66,7 +73,7 @@ function on_input(self, action_id, action)
 			animate_node(gui.get_node("back_button_T"), vmath.vector3(.5, .5, 1), .08)
 		end
 
-		if action_id == hash("touch") and action.pressed then
+		if action_id == hash("touch") and action.released then
 			msg.post("#", "hide")
 		end
 	else
@@ -74,8 +81,6 @@ function on_input(self, action_id, action)
 		gui.animate(gui.get_node("back_button_T"), "scale", vmath.vector3(.5, .5, 1), go.EASING_INOUTSINE, 1)
 		anim_back_node = false
 	end
-
-	return true
 end
 
 
@@ -83,6 +88,13 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
+		if message.restore_prev then
+			restore_prev = true
+			prev_menu = sender
+		else
+			restore_prev = false
+		end
+
 		set_sliders()
 		theme_selector(0)
 		msg.post(".", "acquire_input_focus")
@@ -90,11 +102,13 @@ function on_message(self, message_id, message, sender)
 
 
 	elseif message_id == hash("hide") then
-		msg.post("#", "disable")
 		sound.play("/sound#menu_confirm")
+		msg.post("#", "disable")
+		if restore_prev then
+			msg.post(prev_menu, "enable")
+		end
 
-		local file = sys.get_save_file("Bombix", "config.dzq")
-		sys.save(file, {sound_vol = G_sound_vol, music_vol = G_music_vol, theme = G_theme})
+		save_config()
 	end
 end
 
@@ -125,11 +139,11 @@ end
 
 function set_sliders()
 	pos = gui.get_position(gui.get_node("pointer_sound"))
-	pos.x = G_sound_vol * 350 - 175
+	pos.x = G_settings.sound_vol * 350 - 175
 	gui.set_position(gui.get_node("pointer_sound"), vmath.vector3(pos.x, pos.y, 0))
 	
 	pos = gui.get_position(gui.get_node("pointer_music"))
-	pos.x = G_music_vol * 350 - 175
+	pos.x = G_settings.music_vol * 350 - 175
 	gui.set_position(gui.get_node("pointer_music"), vmath.vector3(pos.x, pos.y, 0))
 end
 
@@ -137,29 +151,33 @@ end
 
 
 function theme_selector(dir)
+	local theme_number = G_settings.theme
+
 	if dir ~= 0 then
-		if G_theme + dir == 0 then
-			G_theme = #theme_data
-		elseif G_theme + dir > #theme_data then
-			G_theme = 1
+		if theme_number + dir == 0 then
+			theme_number = #theme_data
+		elseif theme_number + dir > #theme_data then
+			theme_number = 1
 		else
-			G_theme = G_theme + dir
+			theme_number = theme_number + dir
 		end
 	end
 
 	local node = gui.get_node("tile")
-	local theme = theme_data[G_theme]
+	local theme = theme_data[theme_number]
 	local texture
 	if theme[1] == 1 then
 		if not theme[3] then
-			texture = "tile"..G_theme
+			texture = "tile"..theme_number
 		else
-			texture = "tile"..G_theme.."_ON"
+			texture = "tile"..theme_number.."_ON"
 		end
 	else
-		texture = "tile"..G_theme.."_"..math.random(1, theme[1])
+		texture = "tile"..theme_number.."_"..math.random(1, theme[1])
 	end
 
 	gui.play_flipbook(node, texture)
 	sound.play("/sound#menu_select")
+
+	G_settings.theme = theme_number
 end

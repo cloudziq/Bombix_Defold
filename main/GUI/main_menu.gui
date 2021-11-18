@@ -536,15 +536,15 @@ nodes {
     w: 1.0
   }
   size {
-    x: 200.0
+    x: 190.0
     y: 60.0
     z: 0.0
     w: 1.0
   }
   color {
-    x: 0.7019608
-    y: 0.8
-    z: 1.0
+    x: 0.8
+    y: 1.0
+    z: 0.8
     w: 1.0
   }
   type: TYPE_BOX
@@ -603,7 +603,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "FREE PLAY\n"
+  text: "FREEPLAY\n"
   ""
   font: "Vellyc"
   id: "freeplay_T"
@@ -784,7 +784,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "v0.2 (alpha)"
+  text: "v0.3 (alpha)"
   font: "system"
   id: "version_T"
   xanchor: XANCHOR_NONE

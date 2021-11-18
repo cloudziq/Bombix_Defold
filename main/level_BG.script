@@ -67,7 +67,7 @@ function update(self, dt)
 			time = math.random(12, 22) * time_mod ; delay = 4 * time_mod
 			easing = go.EASING_INOUTSINE
 
-			tint = vmath.vector4(math.random(22, 64) / 100, math.random(24, 68) / 100, math.random(26, 74) / 100, math.random(32, 84) / 100)
+			tint = vmath.vector4(math.random(22, 64) / 100, math.random(24, 68) / 100, math.random(26, 74) / 100, math.random(28, 66) / 100)
 			go.animate("#sprite", "tint", go.PLAYBACK_ONCE_FORWARD, tint, easing, time, delay, function()
 				self.color = false
 			end)

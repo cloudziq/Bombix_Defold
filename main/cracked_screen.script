@@ -6,7 +6,7 @@ function init(self)
 	go.set(".", "euler.z", math.random(0, 360))
 
 	go.animate("#sprite", "tint.w", go.PLAYBACK_ONCE_FORWARD, .2, go.EASING_OUTCUBIC, .2)
-	go.animate("#sprite", "tint.w", go.PLAYBACK_ONCE_FORWARD, 0, go.EASING_OUTCUBIC, 1.2, 2, function()
+	go.animate("#sprite", "tint.w", go.PLAYBACK_ONCE_FORWARD, 0, go.EASING_OUTCUBIC, 1.04, 2.24, function()
 		go.delete()
 	end)
 end

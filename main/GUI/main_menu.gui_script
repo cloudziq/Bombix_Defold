@@ -1,6 +1,7 @@
 
 -- local functions:
 local animate_bomb
+local anim_start_node, anim_options_node, anim_freeplay_node
 
 
 
@@ -37,24 +38,68 @@ end
 
 
 
-function on_message(self, message_id, message, sender)
-
-end
+-- function on_message(self, message_id, message, sender)
+-- 	if message_id == hash("show") then
+-- 		msg.post(".", "enable")
+-- 	end
+-- end
 
 
 
 
 function on_input(self, action_id, action)
-	if action_id == hash("touch") and action.pressed then
-		if gui.pick_node(gui.get_node("start_C"), action.x, action.y) then
+	if gui.pick_node(gui.get_node("start_C"), action.x, action.y) then
+		if not anim_start_node then
+			anim_start_node = true
+			animate_node(gui.get_node("start_C"), vmath.vector3(2), .06, "x")
+			animate_node(gui.get_node("start_T"), vmath.vector3(.4), .05)
+		end
+
+		if action_id == hash("touch") and action.released then
+			G_freeplay = false
 			msg.post("/main#ctrl", "start_game")
 			msg.post(".", "disable")
 		end
+	else
+		gui.animate(gui.get_node("start_C"), "scale", vmath.vector3(2), go.EASING_INOUTSINE, 1)
+		gui.animate(gui.get_node("start_T"), "scale", vmath.vector3(.4), go.EASING_INOUTSINE, 1)
+		anim_start_node = false
+	end
 
-		if gui.pick_node(gui.get_node("options_C"), action.x, action.y) then
-			msg.post("/sub_gui#options", "show")
-			--msg.post(".", "disable")
+
+	if gui.pick_node(gui.get_node("freeplay_C"), action.x, action.y) then
+		if not anim_freeplay_node then
+			anim_freeplay_node = true
+			animate_node(gui.get_node("freeplay_C"), vmath.vector3(2), .06, "x")
+			animate_node(gui.get_node("freeplay_T"), vmath.vector3(.4), .05)
 		end
+
+		if action_id == hash("touch") and action.released then
+			msg.post("/sub_gui#freeplay", "show", {restore_prev = true})
+			msg.post(".", "disable")
+		end
+	else
+		gui.animate(gui.get_node("freeplay_C"), "scale", vmath.vector3(2), go.EASING_INOUTSINE, 1)
+		gui.animate(gui.get_node("freeplay_T"), "scale", vmath.vector3(.4), go.EASING_INOUTSINE, 1)
+		anim_freeplay_node = false
+	end
+
+
+	if gui.pick_node(gui.get_node("options_C"), action.x, action.y) then
+		if not anim_options_node then
+			anim_options_node = true
+			animate_node(gui.get_node("options_C"), vmath.vector3(1.4), .06, "x")
+			animate_node(gui.get_node("options_T"), vmath.vector3(.4), .05)
+		end
+
+		if action_id == hash("touch") and action.released then
+			msg.post("/sub_gui#options", "show", {restore_prev = true})
+			msg.post(".", "disable")
+		end
+	else
+		gui.animate(gui.get_node("options_C"), "scale", vmath.vector3(1.4), go.EASING_INOUTSINE, 1)
+		gui.animate(gui.get_node("options_T"), "scale", vmath.vector3(.4), go.EASING_INOUTSINE, 1)
+		anim_options_node = false
 	end
 end
 

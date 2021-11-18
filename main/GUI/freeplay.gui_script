@@ -1,0 +1,155 @@
+
+-- local variables:
+--local board_w, board_h, board_b
+local restore_prev, prev_menu, max_bombs
+local anim_back_node, anim_start_node = false, false
+
+--local functions:
+local selector_control
+
+
+
+
+function init(self)
+	msg.post("#", "disable")
+	gui.animate(gui.get_node("BG"),  "scale", vmath.vector3(.98, .99, 1), go.EASING_INOUTSINE, 16, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("BG2_1"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 14, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("BG2_2"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 18, 4, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("arrow_w_L"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("arrow_w_R"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("arrow_h_L"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("arrow_h_R"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("arrow_b_L"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+	gui.animate(gui.get_node("arrow_b_R"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+
+	-- selector_control(0, "width_indicator",  G_settings.freeplay_width)
+	-- selector_control(0, "height_indicator", G_settings.freeplay_height)
+	local val = math.ceil(G_settings.freeplay_width * G_settings.freeplay_height / 4)
+	local bombs = G_settings.freeplay_bombs
+	max_bombs = val
+	if bombs > val then bombs = val end
+	-- selector_control(0, "width_indicator",  G_settings.freeplay_bombs)
+	gui.set_text(gui.get_node("width_indicator"),  G_settings.freeplay_width)
+	gui.set_text(gui.get_node("height_indicator"), G_settings.freeplay_height)
+	gui.set_text(gui.get_node("bombs_indicator"),  bombs)
+	gui.set_text(gui.get_node("bomb_T"), "BOMBS (max: "..max_bombs..")")
+end
+
+
+
+
+function on_input(self, action_id, action)
+	if action_id == hash("touch") and action.pressed then
+
+		-- width
+		if gui.pick_node(gui.get_node("arrow_w_L"), action.x, action.y) then
+			G_settings.freeplay_width = selector_control(-1, "width_indicator", G_settings.freeplay_width, 6, G_tiles_max_w)
+		elseif gui.pick_node(gui.get_node("arrow_w_R"), action.x, action.y) then
+			G_settings.freeplay_width = selector_control(1, "width_indicator", G_settings.freeplay_width, 6, G_tiles_max_w)
+		end
+
+		-- height
+		if gui.pick_node(gui.get_node("arrow_h_L"), action.x, action.y) then
+			G_settings.freeplay_height = selector_control(-1, "height_indicator", G_settings.freeplay_height, 6, G_tiles_max_h)
+		elseif gui.pick_node(gui.get_node("arrow_h_R"), action.x, action.y) then
+			G_settings.freeplay_height = selector_control(1, "height_indicator", G_settings.freeplay_height, 6, G_tiles_max_h)
+		end
+
+		-- bombs
+		if gui.pick_node(gui.get_node("arrow_b_L"), action.x, action.y) then
+			G_settings.freeplay_bombs = selector_control(-1, "bombs_indicator", G_settings.freeplay_bombs, 4, max_bombs)
+		elseif gui.pick_node(gui.get_node("arrow_b_R"), action.x, action.y) then
+			G_settings.freeplay_bombs = selector_control(1, "bombs_indicator", G_settings.freeplay_bombs, 4, max_bombs)
+		end
+
+		-- update 'max bombs' indicator
+		max_bombs = math.ceil(G_settings.freeplay_width * G_settings.freeplay_height / 4)
+		if G_settings.freeplay_bombs > max_bombs then
+			G_settings.freeplay_bombs = max_bombs
+			gui.set_text(gui.get_node("bombs_indicator"), max_bombs)
+		end
+		gui.set_text(gui.get_node("bomb_T"), "BOMBS (max: "..max_bombs..")")
+	end
+
+
+	if gui.pick_node(gui.get_node("back_button_T"), action.x, action.y) then
+		if not anim_back_node then
+			anim_back_node = true
+			animate_node(gui.get_node("back_button_C"), vmath.vector3(1,1,1), .06, "x")
+			animate_node(gui.get_node("back_button_T"), vmath.vector3(.5, .5, 1), .08)
+		end
+
+		if action_id == hash("touch") and action.pressed then
+			msg.post("#", "hide")
+		end
+	else
+		gui.animate(gui.get_node("back_button_C"), "scale", vmath.vector3(1,1,1), go.EASING_INOUTSINE, 1)
+		gui.animate(gui.get_node("back_button_T"), "scale", vmath.vector3(.5, .5, 1), go.EASING_INOUTSINE, 1)
+		anim_back_node = false
+	end
+
+
+	if gui.pick_node(gui.get_node("start_button_T"), action.x, action.y) then
+		if not anim_start_node then
+			anim_start_node = true
+			animate_node(gui.get_node("start_button_C"), vmath.vector3(1,1,1), .06, "x")
+			animate_node(gui.get_node("start_button_T"), vmath.vector3(.5, .5, 1), .08)
+		end
+
+		if action_id == hash("touch") and action.pressed then
+			restore_prev = false
+			G_freeplay = true
+			msg.post("#", "hide")
+			msg.post("/main#ctrl", "start_game")
+		end
+	else
+		gui.animate(gui.get_node("start_button_C"), "scale", vmath.vector3(1,1,1), go.EASING_INOUTSINE, 1)
+		gui.animate(gui.get_node("start_button_T"), "scale", vmath.vector3(.5, .5, 1), go.EASING_INOUTSINE, 1)
+		anim_start_node = false
+	end
+end
+
+
+
+
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		msg.post(".", "acquire_input_focus")
+		msg.post("#", "enable")
+
+		if message.restore_prev then
+			restore_prev = true
+			prev_menu = sender
+		else
+			restore_prev = false
+		end
+
+
+	elseif message_id == hash("hide") then
+		sound.play("/sound#menu_confirm")
+		msg.post("#", "disable")
+		if restore_prev then
+			msg.post(prev_menu, "enable")
+		end
+
+		save_config()
+	end
+end
+
+
+
+
+function selector_control(dir, node, value, min, max)
+	-- if dir ~= 0 then
+		if value + dir < min then
+			value = max
+		elseif value + dir > max then
+			value = min
+		else
+			value = value + dir
+		end
+	-- end
+
+	gui.set_text(gui.get_node(node), value)
+	return value
+end

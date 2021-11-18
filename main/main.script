@@ -1,6 +1,8 @@
 
 local load_config
 
+G_tile_size  = 64             -- in pixels
+G_tiles_max_w, G_tiles_max_h = 10, 16
 
 
 
@@ -22,7 +24,7 @@ theme_data = {
 	{1,           1,              nil,                1 },               -- 9
 	{1,           1,              nil,                1 },               -- 10
 	{1,           1,              true,               2 },               -- 11
-	{1,           2,              nil,                .5},                -- 12
+	{1,           2,              nil,                .5},               -- 12
 	{1,           1,              true,               2 },               -- 13
 	{1,           2,              nil,                2 },               -- 14
 	{3,           1,              nil,                1 },               -- 15
@@ -111,9 +113,7 @@ function init(self)
 	msg.post("@render:", "use_fixed_fit_projection", { near = -1, far = 1 })
 	defos.set_view_size((screen_w - temp_window_w) / 2, ((screen_h - 36) - temp_window_h) / 2, temp_window_w, temp_window_h)
 	msg.post(".", "acquire_input_focus")
-	-- timer.delay(1, false, function()
-		load_config()
-	-- end)
+	load_config()
 end
 
 
@@ -124,6 +124,10 @@ function on_message(self, message_id, message, sender)
 		msg.post("#game", "load")
 
 
+	elseif message_id == hash("return to menu") then
+		msg.post("main:/main#game", "unload")
+
+
 	elseif message_id == hash("proxy_loaded") then
 		pprint(tostring(sender).." LOADED")
 		msg.post(sender, "init")
@@ -132,6 +136,7 @@ function on_message(self, message_id, message, sender)
 
 	elseif message_id == hash("proxy_unloaded") then
 		pprint(tostring(sender).." UNLOADED")
+		msg.post("main:/gui#main_menu", "enable")
 	end
 end
 
@@ -176,19 +181,32 @@ end
 
 
 
+local save_version = 1
+
 function load_config()
 	local file = sys.get_save_file("Bombix", "config.dzq")
 	local data = sys.load(file)
 
-	if data.sound_vol == nil then G_sound_vol = 1 else
-		G_sound_vol = data.sound_vol
+	if data.save_version ~= save_version then
+		G_settings = {
+			sound_vol = 1,
+			music_vol =.5,
+			theme = 1,
+			freeplay_width = 10,
+			freeplay_height = 10,
+			freeplay_bombs = 12,
+			save_version = save_version
+		}
+	else
+		G_settings = data
 	end
-	if data.music_vol == nil then G_music_vol = .5 else
-		G_music_vol = data.music_vol
-	end
-	if data.theme == nil then G_theme = 1 else
-		G_theme = data.theme
-	end
-	sound.set_group_gain("sound", G_sound_vol)
-	sound.set_group_gain("music", G_music_vol)
+
+	sound.set_group_gain("sound", G_settings.sound_vol)
+	sound.set_group_gain("music", G_settings.music_vol)
+end
+
+
+function save_config()
+	local file = sys.get_save_file("Bombix", "config.dzq")
+	sys.save(file, G_settings)
 end

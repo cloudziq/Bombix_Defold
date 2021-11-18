@@ -1,7 +1,7 @@
 
 function init(self)
 	msg.post(".", "disable")
-	go.set_scale(1.72)
+	go.set_scale(1.82)
 end
 
 

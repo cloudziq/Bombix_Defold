@@ -1,5 +1,4 @@
 
-G_tile_size  = 64             -- in pixels
 G_allow_board_input = true    -- allows clicking on board and pick special tiles
 
 -- tile status:
@@ -17,7 +16,8 @@ local starting_level = current_level + 1
 
 
 -- local functions:
-local level_prepare, tile_marker, tile_reveal, generate_board, reset_board, gen_num, gen_pos, show_starter_tiles, highlight_tiles
+local level_prepare, freeplay_prepare, generate_board, reset_board, gen_num, gen_pos
+local tile_marker, tile_reveal, show_starter_tiles, highlight_tiles
 local level_complete, game_over, stop_particles
 
 
@@ -25,7 +25,11 @@ local level_complete, game_over, stop_particles
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
-	level_prepare()
+	if G_freeplay then
+		freeplay_prepare()
+	else
+		level_prepare()
+	end
 end
 
 
@@ -232,7 +236,7 @@ function tile_reveal(x, y, detector, neighbours_table, count)
 	if reveal_sound_allow and count > 0 then
 		reveal_sound_allow = false
 		sound.play("/sound#reveal_main")
-		sound.play("/sound#reveal_distant", {gain = 2.4 + G_music_vol})
+		sound.play("/sound#reveal_distant", {gain = 2.4 + G_settings.music_vol})
 	end
 
 	for index, value in ipairs(near_coords) do
@@ -296,6 +300,16 @@ function level_prepare()
 
 		if current_level == starting_level then generate_board() end
 	end)
+end
+
+
+
+
+function freeplay_prepare()
+	board_tiles_x = G_settings.freeplay_width
+	board_tiles_y = G_settings.freeplay_height
+	bombs_amount =  G_settings.freeplay_bombs
+	generate_board()
 end
 
 
@@ -464,7 +478,13 @@ end
 
 
 function show_starter_tiles()
-	local amount, message, add_detector = level_data[current_level][4]
+	local amount, message, add_detector
+	local amount
+	if G_freeplay then
+		amount = math.floor(board_tiles_x * board_tiles_y / 28)
+	else
+		amount = level_data[current_level][4]
+	end
 
 	add_detector = amount > 4 and 1 or 0
 	for a = 1, amount + add_detector do

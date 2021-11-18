@@ -44,23 +44,28 @@ function on_message(self, message_id, message)
 
 		gui.set_text(gui.get_node("bomb amount"), tostring(message.bombs))
 		gui.set_text(gui.get_node("tile amount"), tostring(message.tiles))
-		gui.set_color(gui.get_node("tile detector"), vmath.vector4(.4, .5, 2 * theme_data[G_theme][4], 1))
+		gui.set_color(gui.get_node("tile detector"), vmath.vector4(.4, .5, 2 * theme_data[G_settings.theme][4], 1))
 
-		if theme_data[G_theme][1] == 1 then
-			if theme_data[G_theme][3] == nil then
-				gui.play_flipbook(gui.get_node("tile icon"), "tile"..G_theme)
-				gui.play_flipbook(gui.get_node("tile detector"),  "tile"..G_theme)
+		if theme_data[G_settings.theme][1] == 1 then
+			if theme_data[G_settings.theme][3] == nil then
+				gui.play_flipbook(gui.get_node("tile icon"), "tile"..G_settings.theme)
+				gui.play_flipbook(gui.get_node("tile detector"),  "tile"..G_settings.theme)
 			else
-				gui.play_flipbook(gui.get_node("tile icon"), "tile"..G_theme.."_ON")
-				gui.play_flipbook(gui.get_node("tile detector"),  "tile"..G_theme.."_ON")
+				gui.play_flipbook(gui.get_node("tile icon"), "tile"..G_settings.theme.."_ON")
+				gui.play_flipbook(gui.get_node("tile detector"),  "tile"..G_settings.theme.."_ON")
 			end
 		else
-			local num = math.random(1, theme_data[G_theme][1])
-			gui.play_flipbook(gui.get_node("tile icon"), "tile"..G_theme.."_"..num)
-			gui.play_flipbook(gui.get_node("tile detector"),  "tile"..G_theme.."_"..num)
+			local num = math.random(1, theme_data[G_settings.theme][1])
+			gui.play_flipbook(gui.get_node("tile icon"), "tile"..G_settings.theme.."_"..num)
+			gui.play_flipbook(gui.get_node("tile detector"),  "tile"..G_settings.theme.."_"..num)
 		end
 
-		gui.set_text(gui.get_node("level number"), tostring(message.level))
+		if G_freeplay then
+			gui.set_text(gui.get_node("level"), "FREEPLAY")
+			gui.set_enabled(gui.get_node("level number"), false)
+		else
+			gui.set_text(gui.get_node("level number"), tostring(message.level))
+		end
 		gui.set_color(gui.get_node("marker icon"), vmath.vector4(.6, 1, .65, .6))
 		gui.set_scale(gui.get_node("marker icon"), vmath.vector3(5,5,1))
 		gui.set_text(gui.get_node("marker amount"), "0")
