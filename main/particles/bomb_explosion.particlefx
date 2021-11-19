@@ -231,9 +231,9 @@ emitters {
     key: PARTICLE_KEY_ALPHA
     points {
       x: 0.0
-      y: 0.9958575
-      t_x: 0.93830377
-      t_y: -0.34581217
+      y: 0.6125179
+      t_x: 0.95079565
+      t_y: -0.3098188
     }
     points {
       x: 1.0

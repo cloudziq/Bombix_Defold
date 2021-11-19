@@ -1,5 +1,6 @@
 
 -- local variables:
+local picked_tile_state
 local allow_input = false, true
 
 
@@ -16,15 +17,18 @@ end
 function on_input(self, action_id, action)
 	if action_id == hash("touch") and action.pressed then
 		if gui.pick_node(gui.get_node("restart button_T"), action.x, action.y) and allow_input then
+			allow_input = false
 			msg.post("/main#level", "restart")
 			msg.post("#", "hide display", {speed = 0.1})
+			animate_clicked("restart button_C", 2, .8, false)
+		end
 
 
-		elseif gui.pick_node(gui.get_node("tile detector"), action.x, action.y) and gui.is_enabled(gui.get_node("tile detector")) then
+		if gui.pick_node(gui.get_node("tile detector"), action.x, action.y) and picked_tile_state ~= 0 then
 			if G_allow_board_input then
 				msg.post("/main#level", "detector")
 
-				if not picked_node then
+				if not picked_tile_state then
 					msg.post("#", "special tiles display", {state = "true"})
 				else
 					msg.post("#", "special tiles display", {state = "false"})
@@ -41,10 +45,11 @@ function on_message(self, message_id, message)
 	if message_id == hash("show display") then
 		gui.reset_nodes()
 		msg.post(".", "enable")
+		picked_tile_state = false
 
 		gui.set_text(gui.get_node("bomb amount"), tostring(message.bombs))
 		gui.set_text(gui.get_node("tile amount"), tostring(message.tiles))
-		gui.set_color(gui.get_node("tile detector"), vmath.vector4(.4, .5, 2 * theme_data[G_settings.theme][4], 1))
+		gui.set_color(gui.get_node("tile detector"), vmath.vector4(1,1, 4 * theme_data[G_settings.theme][4], 1))
 
 		if theme_data[G_settings.theme][1] == 1 then
 			if theme_data[G_settings.theme][3] == nil then
@@ -92,7 +97,7 @@ function on_message(self, message_id, message)
 		gui.animate(gui.get_node("special tiles_C"),  "color.w", 0, go.EASING_INSINE, speed)
 		gui.animate(gui.get_node("tile detector"),    "color.w", 0, go.EASING_INSINE, speed)
 		gui.animate(gui.get_node("detector anim"),    "color.w", 0, go.EASING_INSINE, speed)
-		gui.animate(gui.get_node("restart button_C"), "color.w", 0, go.EASING_INSINE, speed)
+		--gui.animate(gui.get_node("restart button_C"), "color.w", 0, go.EASING_INSINE, speed)
 
 
 
@@ -109,22 +114,38 @@ function on_message(self, message_id, message)
 
 	elseif message_id == hash("special tiles display") then
 		if message.state == "true" then         -- is picked
-			node = gui.get_node("special tiles_C")
-			gui.animate(node, "color", vmath.vector3(.2, .2, 1, 1), go.EASING_INOUTCIRC, .4, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
 			node = gui.get_node("tile detector")
+			gui.animate(node, "color", vmath.vector3(.2, .2, 4 * theme_data[G_settings.theme][4], 1), go.EASING_INOUTCIRC, .4, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
 			gui.animate(node, "scale", vmath.vector3(.4), go.EASING_INOUTCIRC, .4, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+			sound.play("/sound#special_tile_pickup")
+			picked_tile_state = true
+
 
 		elseif message.state == "false" then    -- normal
-			node = gui.get_node("special tiles_C")
-			gui.cancel_animation(node, "color")
-			gui.set_color(node, vmath.vector3(1))
+			local tim
 			node = gui.get_node("tile detector")
-			gui.cancel_animation(node, "scale")
-			gui.set_scale(node, vmath.vector3(.28))
+			gui.cancel_animation(node, "color")
+			gui.set_color(node, vmath.vector4(1,1,4,1))
+			tim = timer.delay(0.02, true, function()
+				local scale = gui.get_scale(node)
+				if scale.x >= 0.384 then
+					timer.cancel(tim)
+					gui.cancel_animation(node, "scale")
+					gui.animate(node, "scale", vmath.vector3(.28), go.EASING_INOUTSINE, .6)
+				end
+			end)
+			sound.play("/sound#special_tile_pickup", {speed = .6})
+			picked_tile_state = false
+
 
 		elseif message.state == "hide" then
-			gui.set_enabled(gui.get_node("tile detector"), false)
-			gui.set_enabled(gui.get_node("detector anim"), false)
+			node = gui.get_node("tile detector")
+			gui.cancel_animation(node, "color")
+			gui.cancel_animation(node, "scale")
+			animate_clicked("tile detector", 2, 1.64, nil, function()
+				gui.set_enabled(gui.get_node("detector anim"), false)
+			end)
+			picked_tile_state = 0
 		end
 	end
 end

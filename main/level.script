@@ -170,6 +170,7 @@ function check_clicked_tile(x, y)    -- called from touch_collider
 		end
 
 		if detector_mode and tile < 2 then
+			sound.play("/sound#special_tile_pickup", {speed = .42, gain = 4})
 			msg.post("/main#level", "detector")
 			msg.post("/gui#level", "special tiles display", {state = "hide"})
 		end

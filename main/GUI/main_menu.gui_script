@@ -1,17 +1,21 @@
 
+-- local variables:
+local start_node_active, freeplay_node_active, options_node_active
+local anim_start_node, anim_options_node, anim_freeplay_node
+
 -- local functions:
 local animate_bomb
-local anim_start_node, anim_options_node, anim_freeplay_node
 
 
 
 
 function init(self)
 	msg.post(".", "acquire_input_focus")
+	msg.post(".", "show")
 	sound.play("/sound#menu_music")
 
 	BG_table = {}
-	for a = 1, 10 do
+	for a = 1, 12 do
 		local id = factory.create("/main#BG_factory")
 		table.insert(BG_table, msg.url(nil, id, nil))
 	end
@@ -19,9 +23,11 @@ function init(self)
 	--gui.set_enabled(gui.get_node("title"), true)
 	gui.play_particlefx(gui.get_node("bomb_fuse"))
 
-	local node = gui.get_node("bomb")
+	local node = gui.get_node("title_T2")
 	local rot = gui.get_rotation(node)
 	animate_bomb(node, rot.z)
+	animate_letters()
+
 	gui.animate(gui.get_node("BG"),  "scale", vmath.vector3(.98, .99, 1), go.EASING_INOUTSINE, 16, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
 	gui.animate(gui.get_node("BG2_1"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 14, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
 	gui.animate(gui.get_node("BG2_2"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 18, 4, nil, gui.PLAYBACK_LOOP_PINGPONG)
@@ -38,69 +44,103 @@ end
 
 
 
--- function on_message(self, message_id, message, sender)
--- 	if message_id == hash("show") then
--- 		msg.post(".", "enable")
--- 	end
--- end
+function on_message(self, message_id, message, sender)
+	if message_id == hash("show") then
+		start_node_active, freeplay_node_active, options_node_active = true, true, true
+		gui.reset_nodes()
+		msg.post(".", "enable")
+	end
+end
 
 
 
 
 function on_input(self, action_id, action)
-	if gui.pick_node(gui.get_node("start_C"), action.x, action.y) then
-		if not anim_start_node then
-			anim_start_node = true
-			animate_node(gui.get_node("start_C"), vmath.vector3(2), .06, "x")
-			animate_node(gui.get_node("start_T"), vmath.vector3(.4), .05)
-		end
+	if start_node_active then
+		if gui.pick_node(gui.get_node("start_C"), action.x, action.y) then
+			if not anim_start_node then
+				anim_start_node = true
+				animate_node(gui.get_node("start_C"), vmath.vector3(2), .06, "x")
+				animate_node(gui.get_node("start_T"), vmath.vector3(.4), .05)
+			end
 
-		if action_id == hash("touch") and action.released then
-			G_freeplay = false
-			msg.post("/main#ctrl", "start_game")
-			msg.post(".", "disable")
+			if action_id == hash("touch") and action.released then
+				G_freeplay        = false
+				start_node_active = false
+				animate_clicked("start_C", 2, 0, true, function()
+					msg.post("/main#ctrl", "start_game")
+					msg.post(".", "disable")
+				end)
+			end
+		else
+			gui.animate(gui.get_node("start_C"), "scale", vmath.vector3(2), go.EASING_INOUTSINE, 1)
+			gui.animate(gui.get_node("start_T"), "scale", vmath.vector3(.4), go.EASING_INOUTSINE, 1)
+			anim_start_node = false
 		end
-	else
-		gui.animate(gui.get_node("start_C"), "scale", vmath.vector3(2), go.EASING_INOUTSINE, 1)
-		gui.animate(gui.get_node("start_T"), "scale", vmath.vector3(.4), go.EASING_INOUTSINE, 1)
-		anim_start_node = false
 	end
 
 
-	if gui.pick_node(gui.get_node("freeplay_C"), action.x, action.y) then
-		if not anim_freeplay_node then
-			anim_freeplay_node = true
-			animate_node(gui.get_node("freeplay_C"), vmath.vector3(2), .06, "x")
-			animate_node(gui.get_node("freeplay_T"), vmath.vector3(.4), .05)
-		end
+	if freeplay_node_active then
+		if gui.pick_node(gui.get_node("freeplay_C"), action.x, action.y) then
+			if not anim_freeplay_node then
+				anim_freeplay_node = true
+				animate_node(gui.get_node("freeplay_C"), vmath.vector3(2), .06, "x")
+				animate_node(gui.get_node("freeplay_T"), vmath.vector3(.4), .05)
+			end
 
-		if action_id == hash("touch") and action.released then
-			msg.post("/sub_gui#freeplay", "show", {restore_prev = true})
-			msg.post(".", "disable")
+			if action_id == hash("touch") and action.released then
+				freeplay_node_active = false
+				animate_clicked("freeplay_C", 2, 0, true, function()
+					msg.post("/sub_gui#freeplay", "show", {restore_prev = true})
+					msg.post(".", "disable")
+				end)
+			end
+		else
+			gui.animate(gui.get_node("freeplay_C"), "scale", vmath.vector3(2), go.EASING_INOUTSINE, 1)
+			gui.animate(gui.get_node("freeplay_T"), "scale", vmath.vector3(.4), go.EASING_INOUTSINE, 1)
+			anim_freeplay_node = false
 		end
-	else
-		gui.animate(gui.get_node("freeplay_C"), "scale", vmath.vector3(2), go.EASING_INOUTSINE, 1)
-		gui.animate(gui.get_node("freeplay_T"), "scale", vmath.vector3(.4), go.EASING_INOUTSINE, 1)
-		anim_freeplay_node = false
 	end
 
 
-	if gui.pick_node(gui.get_node("options_C"), action.x, action.y) then
-		if not anim_options_node then
-			anim_options_node = true
-			animate_node(gui.get_node("options_C"), vmath.vector3(1.4), .06, "x")
-			animate_node(gui.get_node("options_T"), vmath.vector3(.4), .05)
-		end
+	if options_node_active then
+		if gui.pick_node(gui.get_node("options_C"), action.x, action.y) then
+			if not anim_options_node then
+				anim_options_node = true
+				animate_node(gui.get_node("options_C"), vmath.vector3(1.4), .06, "x")
+				animate_node(gui.get_node("options_T"), vmath.vector3(.4), .05)
+			end
 
-		if action_id == hash("touch") and action.released then
-			msg.post("/sub_gui#options", "show", {restore_prev = true})
-			msg.post(".", "disable")
+			if action_id == hash("touch") and action.released then
+				options_node_active = false
+				animate_clicked("options_C", 2, 0, true, function()
+					msg.post("/sub_gui#options", "show", {restore_prev = true})
+					msg.post(".", "disable")
+				end)
+			end
+		else
+			gui.animate(gui.get_node("options_C"), "scale", vmath.vector3(1.4), go.EASING_INOUTSINE, 1)
+			gui.animate(gui.get_node("options_T"), "scale", vmath.vector3(.4), go.EASING_INOUTSINE, 1)
+			anim_options_node = false
 		end
-	else
-		gui.animate(gui.get_node("options_C"), "scale", vmath.vector3(1.4), go.EASING_INOUTSINE, 1)
-		gui.animate(gui.get_node("options_T"), "scale", vmath.vector3(.4), go.EASING_INOUTSINE, 1)
-		anim_options_node = false
 	end
+end
+
+
+
+
+function animate_letters()
+	local scale
+	for a = 1, 6 do
+		scale     = gui.get_scale(gui.get_node("title_T"..a)) * 1.1
+		scale_def = a ~= 2 and 1.5 or 1.26
+		timer.delay(.25 * a, false, function()
+			gui.animate(gui.get_node("title_T"..a), "scale", scale, go.EASING_INSINE, .4, 0, function()
+				gui.animate(gui.get_node("title_T"..a), "scale", scale_def, go.EASING_OUTSINE, .4)
+			end)
+		end)
+	end
+	timer.delay(1.5, false, animate_letters)
 end
 
 

@@ -121,7 +121,7 @@ end
 
 function on_message(self, message_id, message, sender)
 	if message_id == hash("start_game") then
-		msg.post("#game", "load")
+		msg.post("#game", "async_load")
 
 
 	elseif message_id == hash("return to menu") then
@@ -179,6 +179,25 @@ function animate_node(node, scale, range, param)
 end
 
 
+-- sound_type:    true = confirm,    false = back,    nil = no_sound
+function animate_clicked(node, multiplier, anim_speed, sound_type, callback_function)
+	local node = gui.get_node(node)
+	local rot = gui.get_rotation(node)
+	local scale = gui.get_scale(node)
+	local dir = math.random(0, 1) == 1 and 360 or -360
+	local anim_speed = anim_speed > 0 and anim_speed or .4
+	if sound_type ~= nil then
+		sound_speed = sound_type and 1.8 or 1
+		sound.play("main:/sound#menu_confirm", {speed = sound_speed})
+	end
+
+	gui.cancel_animation(node, "scale")
+	gui.animate(node, "color", vmath.vector4(0), gui.EASING_LINEAR, anim_speed)
+	gui.animate(node, "rotation", vmath.vector3(rot.x, rot.y, dir), gui.EASING_LINEAR, anim_speed)
+	gui.animate(node, "scale", vmath.vector3(scale.x * multiplier, scale.y * multiplier, scale.z), gui.EASING_LINEAR, anim_speed, 0, callback_function)
+end
+
+
 
 
 local save_version = 1
@@ -189,8 +208,8 @@ function load_config()
 
 	if data.save_version ~= save_version then
 		G_settings = {
-			sound_vol = 1,
-			music_vol =.5,
+			sound_vol =  1,
+			music_vol = .5,
 			theme = 1,
 			freeplay_width = 10,
 			freeplay_height = 10,
