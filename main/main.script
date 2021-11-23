@@ -136,7 +136,7 @@ function on_message(self, message_id, message, sender)
 
 	elseif message_id == hash("proxy_unloaded") then
 		pprint(tostring(sender).." UNLOADED")
-		msg.post("main:/gui#main_menu", "enable")
+		msg.post("main:/gui#main_menu", "show")
 	end
 end
 
@@ -210,6 +210,7 @@ function load_config()
 		G_settings = {
 			sound_vol =  1,
 			music_vol = .5,
+			range_display = true,
 			theme = 1,
 			freeplay_width = 10,
 			freeplay_height = 10,

@@ -1036,7 +1036,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "v0.3 (alpha)"
+  text: "v0.4 (alpha)"
   font: "system"
   id: "version_T"
   xanchor: XANCHOR_NONE

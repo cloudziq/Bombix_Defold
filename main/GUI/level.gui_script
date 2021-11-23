@@ -139,12 +139,20 @@ function on_message(self, message_id, message)
 
 
 		elseif message.state == "hide" then
-			node = gui.get_node("tile detector")
+			local node = gui.get_node("tile detector")
+			local scale = gui.get_scale(node)
 			gui.cancel_animation(node, "color")
 			gui.cancel_animation(node, "scale")
-			animate_clicked("tile detector", 2, 1.64, nil, function()
-				gui.set_enabled(gui.get_node("detector anim"), false)
-			end)
+
+			gui.animate(gui.get_node("detector anim"), "color", vmath.vector4(0), gui.EASING_LINEAR, 1.64)
+			if message.silent_hide then
+				gui.animate(node, "scale", vmath.vector3(scale.x * 2, scale.y * 2, scale.z), gui.EASING_LINEAR, 1.64)
+				gui.animate(node, "color", vmath.vector4(0), gui.EASING_LINEAR, 1.64)
+			else
+				animate_clicked("tile detector", 4, 1.48, nil, function()
+					gui.set_enabled(gui.get_node("detector anim"), false)
+				end)
+			end
 			picked_tile_state = 0
 		end
 	end

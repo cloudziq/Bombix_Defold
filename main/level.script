@@ -166,7 +166,9 @@ function check_clicked_tile(x, y)    -- called from touch_collider
 		if tile ~= 1 and board_data[x][y][3] ~= 0 and tiles_left > 0 then
 			local detector
 			if board_data[x][y][2] == 3 then detector = true else detector = false end
-			msg.post(touch_id, "show range", {board_x = board_tiles_x, board_y = board_tiles_y, size = G_tile_size, detector = detector})
+			if (detector and not G_settings.range_display) or G_settings.range_display then
+				msg.post(touch_id, "show range", {board_x = board_tiles_x, board_y = board_tiles_y, size = G_tile_size, detector = detector})
+			end
 		end
 
 		if detector_mode and tile < 2 then
@@ -348,7 +350,7 @@ function game_over(num_x, num_y)
 	lose                = true
 	G_allow_board_input = false
 
-	msg.post("/gui#level", "special tiles display", {state = "hide"})
+	msg.post("/gui#level", "special tiles display", {state = "hide", silent_hide = true})
 
 	for x = 1, board_tiles_x do
 		for y = 1, board_tiles_y do

@@ -13,15 +13,6 @@ local selector_control
 
 function init(self)
 	msg.post("#", "disable")
-	gui.animate(gui.get_node("BG"),  "scale", vmath.vector3(.98, .99, 1), gui.EASING_INOUTSINE, 16, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	gui.animate(gui.get_node("BG2_1"), "scale", vmath.vector3(1.4, 1.5 ,1), gui.EASING_INOUTSINE, 14, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	gui.animate(gui.get_node("BG2_2"), "scale", vmath.vector3(1.4, 1.5 ,1), gui.EASING_INOUTSINE, 18, 4, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	gui.animate(gui.get_node("arrow_w_L"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	gui.animate(gui.get_node("arrow_w_R"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	gui.animate(gui.get_node("arrow_h_L"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	gui.animate(gui.get_node("arrow_h_R"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	gui.animate(gui.get_node("arrow_b_L"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	gui.animate(gui.get_node("arrow_b_R"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
 
 	local val = math.ceil(G_settings.freeplay_width * G_settings.freeplay_height / 4)
 	local bombs = G_settings.freeplay_bombs
@@ -127,6 +118,16 @@ function on_message(self, message_id, message, sender)
 		msg.post(".", "acquire_input_focus")
 		msg.post("#", "enable")
 		gui.reset_nodes()
+		gui.animate(gui.get_node("BG"),  "scale", vmath.vector3(.98, .99, 1), gui.EASING_INOUTSINE, 16, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
+		gui.animate(gui.get_node("BG2_1"), "scale", vmath.vector3(1.4, 1.5 ,1), gui.EASING_INOUTSINE, 14, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
+		gui.animate(gui.get_node("BG2_2"), "scale", vmath.vector3(1.4, 1.5 ,1), gui.EASING_INOUTSINE, 18, 4, nil, gui.PLAYBACK_LOOP_PINGPONG)
+
+		gui.animate(gui.get_node("arrow_w_L"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+		gui.animate(gui.get_node("arrow_w_R"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+		gui.animate(gui.get_node("arrow_h_L"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+		gui.animate(gui.get_node("arrow_h_R"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+		gui.animate(gui.get_node("arrow_b_L"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
+		gui.animate(gui.get_node("arrow_b_R"), "scale", vmath.vector3(1.1), gui.EASING_INOUTSINE, .8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)
 
 		if message.restore_prev then
 			restore_prev = true

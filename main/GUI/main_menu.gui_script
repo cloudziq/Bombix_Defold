@@ -22,23 +22,6 @@ function init(self)
 
 	--gui.set_enabled(gui.get_node("title"), true)
 	gui.play_particlefx(gui.get_node("bomb_fuse"))
-
-	local node = gui.get_node("title_T2")
-	local rot = gui.get_rotation(node)
-	animate_bomb(node, rot.z)
-	animate_letters()
-
-	gui.animate(gui.get_node("BG"),  "scale", vmath.vector3(.98, .99, 1), go.EASING_INOUTSINE, 16, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	gui.animate(gui.get_node("BG2_1"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 14, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
-	gui.animate(gui.get_node("BG2_2"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 18, 4, nil, gui.PLAYBACK_LOOP_PINGPONG)
-
-	local node = gui.get_node("BG2_1") ; local color = gui.get_color(node)
-	color.w = .6 ; gui.set_color(node, color)
-	gui.animate(node, "color.w", 0, go.EASING_INOUTSINE, 12, 1, nil, gui.PLAYBACK_LOOP_PINGPONG)
-
-	local node = gui.get_node("BG2_2") ; local color = gui.get_color(node)
-	color.w = 0 ; gui.set_color(node, color)
-	gui.animate(node, "color.w", .6, go.EASING_INOUTSINE, 12, 1, nil, gui.PLAYBACK_LOOP_PINGPONG)
 end
 
 
@@ -48,6 +31,24 @@ function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		start_node_active, freeplay_node_active, options_node_active = true, true, true
 		gui.reset_nodes()
+
+		local node = gui.get_node("title_T2")
+		local rot = gui.get_rotation(node)
+		animate_bomb(node, rot.z)
+		animate_letters()
+
+		gui.animate(gui.get_node("BG"),  "scale", vmath.vector3(.98, .99, 1), go.EASING_INOUTSINE, 16, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
+		gui.animate(gui.get_node("BG2_1"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 14, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
+		gui.animate(gui.get_node("BG2_2"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 18, 4, nil, gui.PLAYBACK_LOOP_PINGPONG)
+
+		local node = gui.get_node("BG2_1") ; local color = gui.get_color(node)
+		color.w = .6 ; gui.set_color(node, color)
+		gui.animate(node, "color.w", 0, go.EASING_INOUTSINE, 12, 1, nil, gui.PLAYBACK_LOOP_PINGPONG)
+
+		local node = gui.get_node("BG2_2") ; local color = gui.get_color(node)
+		color.w = 0 ; gui.set_color(node, color)
+		gui.animate(node, "color.w", .6, go.EASING_INOUTSINE, 12, 1, nil, gui.PLAYBACK_LOOP_PINGPONG)
+
 		msg.post(".", "enable")
 	end
 end
@@ -147,7 +148,7 @@ end
 
 
 function animate_bomb(node, rot)
-	gui.animate(node, "rotation.z", math.random(rot - 20, rot + 25), go.EASING_OUTBOUNCE, math.random(4, 8), 0, function()
+	gui.animate(node, "rotation.z", math.random(rot - 20, rot + 25), gui.EASING_OUTBOUNCE, math.random(4, 8), 0, function()
 		animate_bomb(node, rot)
 	end)
 end

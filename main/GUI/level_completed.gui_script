@@ -40,7 +40,6 @@ function on_message(self, message_id, message)
 			gui.set_enabled(gui.get_node("LEVEL COMPLETED"), false)
 			gui.set_enabled(gui.get_node("BG"), false)
 		end)
-		sound.play("main:/sound#menu_confirm", {speed = 1.8})
 	end
 end
 
