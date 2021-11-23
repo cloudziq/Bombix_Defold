@@ -16,7 +16,6 @@ function init(self)
 	go.set_scale(.5)
 	sprite.set_hflip("#sprite", math.random(1,2) == 2)
 	sprite.set_vflip("#sprite", math.random(1,2) == 2)
-	msg.post("#collide_tile", "disable")
 	msg.post("#collide_wave", "enable")
 
 	if theme_data[G_settings.theme][1] == 1 then
@@ -55,7 +54,7 @@ function init(self)
 		go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale / 2, go.EASING_INQUINT, .6, 0, function()
 			go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, self.scale, go.EASING_OUTQUINT, math.random(1, 8))
 			tile_tint(0, .2)
-			animate_tile(self, false)
+			animate_tile(self)
 		end)
 	end)
 end
@@ -64,14 +63,12 @@ end
 
 
 function on_message(self, message_id, message, sender)
-	if message.group == hash("tile") then
+	if message_id == hash("change Z order") then
+		if message.set_Z then z = 0.1 end
 		local pos = go.get_position()
-		msg.post("#collide_tile", "disable")
-		pos.z = z
-		z = z + 0.001
+		pos.z = z ; z = z + 0.001
+		go.cancel_animations(".", "position")
 		go.set_position(pos)
-
-
 
 
 	elseif message.group == hash("wave") and message_id == hash("contact_point_response") then
@@ -91,13 +88,12 @@ function on_message(self, message_id, message, sender)
 
 		go.cancel_animations(".", "euler")
 		go.cancel_animations(".", "scale")
+		go.cancel_animations(".", "position")
 		local rotate_time = .6 * (1 - distance)
 		local r_min = (rotate_time - rotate_time / 20) * 100
 		local r_max = (rotate_time + rotate_time / 20) * 100
 		go.animate(".", "rotation", go.PLAYBACK_ONCE_FORWARD, rot, go.EASING_OUTSINE, math.random(r_min, r_max) / 100)
-		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_OUTSINE, .32, 0, function()
-			msg.post("#collide_tile", "enable")
-		end)
+		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(pos.x, pos.y, pos1.z), go.EASING_OUTSINE, .32)
 		msg.post("#collide_wave", "disable")
 
 
@@ -119,7 +115,7 @@ function on_message(self, message_id, message, sender)
 
 		go.cancel_animations(".", "position")
 		go.set_position(vmath.vector3(pos.x, pos.y, pos.z))
-		animate_tile(self, true)
+		animate_tile(self)
 
 		local id = factory.create("/main#tile_reveal_particle_factory", vmath.vector3(0))
 		go.set_parent(id, message.parent)
@@ -139,9 +135,6 @@ function on_message(self, message_id, message, sender)
 
 
 
-
-	elseif message_id == hash("set Z") then
-		z = 0.1
 
 	elseif message_id == hash("delete") then
 		go.delete()
@@ -185,16 +178,15 @@ end
 
 
 
-function animate_tile(self, refresh_z)
+function animate_tile(self)
 	local pos = vmath.vector3(self.pos)
 	local distance = 2
 
 	pos.x = pos.x + math.random(-distance, distance)
 	pos.y = pos.y + math.random(-distance, distance)
-	pos.z = refresh_z and go.get_position().z or pos.z
-	self.pos = vmath.vector3(self.pos.x, self.pos.y, pos.z)
+	self.pos = vmath.vector3(self.pos.x, self.pos.y, self.pos.z)
 
 	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_INOUTSINE, math.random(2, 4), 0, function()
-		animate_tile(self, false)
+		animate_tile(self)
 	end)
 end

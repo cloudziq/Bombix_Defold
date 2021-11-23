@@ -25,7 +25,7 @@ function init(self)
 	math.randomseed(os.time())
 	for _ = 1, 10 do math.random() end
 	go.set_position(vmath.vector3(window_w / 2, window_h / 2 , z))
-	z = z + 0.01 ; last_id = go.get_id()
+	z = z + 0.001 ; last_id = go.get_id()
 	go.set_scale(10)
 	msg.post("#sprite", "play_animation", { id = hash("bg"..math.random(1, level_bg_in_atlas)) })
 	go.set("#sprite", "tint", vmath.vector4(.4, .42, .46, 0))

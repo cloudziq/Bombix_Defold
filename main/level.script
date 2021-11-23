@@ -347,8 +347,8 @@ end
 
 function game_over(num_x, num_y)
 	local x, y, message, use_tint
-	lose                = true
-	G_allow_board_input = false
+	lose                       = true
+	G_allow_board_input        = false
 
 	msg.post("/gui#level", "special tiles display", {state = "hide", silent_hide = true})
 
@@ -525,22 +525,31 @@ end
 
 
 function reset_board()
-	local x, y, item, id
-	local delay
+	local x, y, item, id, message
+	local first_tile_to_change, delay = true
 
 	if lose then
 		delay = 2.222
-		msg.post(board_data[tile_num_x][tile_num_y][1][3], "detonate bomb")
-		msg.post("/gui#dirty_overlay", "show lose overlay")
-		msg.post(board_data[1][1][1][1], "set Z")
 
 		for x = 1, board_tiles_x do
 			for y = 1, board_tiles_y do
 				if board_data[x][y][2] == 1 then
 					msg.post(board_data[x][y][1][3], "hide sprite")    -- hide bombs
 				end
+
+				-- change Z order of tiles (to properly display them in case they are overlapping after explosion)
+				if first_tile_to_change then
+					first_tile_to_change = false
+					message = true
+				else
+					message = false
+				end
+				msg.post(board_data[x][y][1][1], "change Z order", {set_Z = message})
 			end
 		end
+
+		msg.post(board_data[tile_num_x][tile_num_y][1][3], "detonate bomb")
+		msg.post("/gui#dirty_overlay", "show lose overlay")
 	else
 		delay = .2
 	end

@@ -30,12 +30,16 @@ end
 function on_message(self, message_id, message, sender)
 	if message_id == hash("show") then
 		start_node_active, freeplay_node_active, options_node_active = true, true, true
+
+		for a = 1, 6 do
+			gui.cancel_animation(gui.get_node("title_T"..a), "scale")
+		end
 		gui.reset_nodes()
 
 		local node = gui.get_node("title_T2")
 		local rot = gui.get_rotation(node)
 		animate_bomb(node, rot.z)
-		animate_letters()
+		animate_title(nil, true)
 
 		gui.animate(gui.get_node("BG"),  "scale", vmath.vector3(.98, .99, 1), go.EASING_INOUTSINE, 16, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
 		gui.animate(gui.get_node("BG2_1"), "scale", vmath.vector3(1.4, 1.5 ,1), go.EASING_INOUTSINE, 14, 2, nil, gui.PLAYBACK_LOOP_PINGPONG)
@@ -130,18 +134,27 @@ end
 
 
 
-function animate_letters()
-	local scale
-	for a = 1, 6 do
-		scale     = gui.get_scale(gui.get_node("title_T"..a)) * 1.1
+function animate_title(node, init)
+	local node = node or nil
+	local scale, scale_min, scale_max
+	local time_min, time_max, scale_diff = (2) * 10, (6) * 10, .12
+
+	if init then
+		for a = 1, 6 do
+			node = gui.get_node("title_T"..a)
+			animate_title(node)
+		end
+	else
+		scale     = gui.get_scale(node)
+		scale_min = (scale.x - (scale.x * scale_diff)) * 100
+		scale_max = (scale.x + (scale.x * scale_diff)) * 100
 		scale_def = a ~= 2 and 1.5 or 1.26
-		timer.delay(.25 * a, false, function()
-			gui.animate(gui.get_node("title_T"..a), "scale", scale, go.EASING_INSINE, .4, 0, function()
-				gui.animate(gui.get_node("title_T"..a), "scale", scale_def, go.EASING_OUTSINE, .4)
+		gui.animate(node, "scale", vmath.vector3(math.random(scale_min, scale_max) / 100), gui.EASING_INBOUNCE, math.random(time_min, time_max) / 10, 0, function()
+			gui.animate(node, "scale", scale_def, gui.EASING_OUTBOUNCE, math.random(time_min, time_max) / 10, 0, function()
+				animate_title(node)
 			end)
 		end)
 	end
-	timer.delay(1.5, false, animate_letters)
 end
 
 

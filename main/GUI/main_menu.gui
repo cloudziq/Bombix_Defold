@@ -306,8 +306,8 @@ nodes {
     w: 1.0
   }
   scale {
-    x: 1.2
-    y: 1.2
+    x: 1.1
+    y: 1.1
     z: 1.0
     w: 1.0
   }
@@ -1036,7 +1036,7 @@ nodes {
   }
   type: TYPE_TEXT
   blend_mode: BLEND_MODE_ALPHA
-  text: "v0.4 (alpha)"
+  text: "v0.8 (beta)"
   font: "system"
   id: "version_T"
   xanchor: XANCHOR_NONE

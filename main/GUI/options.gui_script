@@ -65,6 +65,7 @@ function on_input(self, action_id, action)
 	if gui.pick_node(gui.get_node("checkbox_range_C"), action.x, action.y) and action.pressed then
 		if checkbox_range then checkbox_range = false else checkbox_range = true end
 		checkbox_set()
+		sound.play("/sound#menu_select")
 		G_settings.range_display = checkbox_range
 	end
 
