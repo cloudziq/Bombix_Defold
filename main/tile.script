@@ -1,6 +1,6 @@
 
 -- local variables
-local z
+local z, bounce_sound_delay
 local dark_color               = vmath.vector4(.18, .20, .22, 1)
 local detector_highlight_color = vmath.vector4(1,1,4,1)
 
@@ -41,6 +41,7 @@ function init(self)
 	self.pos          = go.get_position()
 	self.rot          = go.get(".", "euler.z")
 	self.scale        = go.get_scale()
+	self.bounce_num   = 1
 
 	x, y = gen_offscreen_pos(100)
 
@@ -78,9 +79,8 @@ function on_message(self, message_id, message, sender)
 		local rot = go.get(".", "euler.z")
 
 		local distance_temp = math.sqrt( (pos1.x - pos2.x)^2 + (pos1.y - pos2.y)^2 )
-		local distance      = distance_temp / max_blast_range
-		distance = math.max(0, math.min(distance, 1))
-		local angle = max_angle * (1.01 - distance)
+		local distance = math.max(0, math.min(distance_temp / max_blast_range, 1))
+		local angle = max_angle * (1.02 - distance)
 		local pos = pos1 + message.normal * (message.distance * (4.62 * (1.12 - distance)))
 		rot = vmath.quat_rotation_z((rot + math.random(-angle, angle)) * math.pi / 180)
 
@@ -89,11 +89,21 @@ function on_message(self, message_id, message, sender)
 		go.cancel_animations(".", "euler")
 		go.cancel_animations(".", "scale")
 		go.cancel_animations(".", "position")
-		local rotate_time = .6 * (1 - distance)
-		local r_min = (rotate_time - rotate_time / 20) * 100
-		local r_max = (rotate_time + rotate_time / 20) * 100
-		go.animate(".", "rotation", go.PLAYBACK_ONCE_FORWARD, rot, go.EASING_OUTSINE, math.random(r_min, r_max) / 100)
-		go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(pos.x, pos.y, pos1.z), go.EASING_OUTSINE, .32)
+
+		if math.max(1, math.floor(distance * 100)) <= 40 and math.random(100) >= 22 then
+			local steps = math.random(2, 6)
+			z = z + 0.001
+			bounce_sound_delay = socket.gettime()
+			pos = pos + message.normal * message.distance * 3.2 * (steps * .5) ; pos.z = z
+			tile_bounce(self, pos, (math.random(22, 38) / 100) * (steps * .14), steps)
+		else
+			go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, vmath.vector3(pos.x, pos.y, pos1.z), go.EASING_OUTSINE, .32)
+			local rotate_time = .6 * (1 - distance)
+			local r_min = (rotate_time - rotate_time / 20) * 100
+			local r_max = (rotate_time + rotate_time / 20) * 100
+			go.animate(".", "rotation", go.PLAYBACK_ONCE_FORWARD, rot, go.EASING_OUTSINE, math.random(r_min, r_max) / 100)
+		end
+
 		msg.post("#collide_wave", "disable")
 
 
@@ -188,5 +198,41 @@ function animate_tile(self)
 
 	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, pos, go.EASING_INOUTSINE, math.random(2, 4), 0, function()
 		animate_tile(self)
+	end)
+end
+
+
+
+
+function tile_bounce(self, dest, time, bounce_amount)
+	local step_length = {60, 20, 0, -25, -65, -90}
+	local step_scale = {2.46, 1.92, 1.54, 1.28, 1.08, 1.02}
+	local pos = go.get_position()
+	local dir = dest - pos
+	local new_pos = pos + dir * (1 / bounce_amount)
+	local step_time = time + (step_length[self.bounce_num] * time) / 100
+	local scale = go.get_scale()
+	local step_scale = scale * step_scale[self.bounce_num]
+
+	if self.bounce_num == 1 then
+		local rot = vmath.quat_rotation_z(math.random(-360, 360) * math.pi / 180)
+		go.animate(".", "rotation", go.PLAYBACK_ONCE_FORWARD, rot, go.EASING_OUTSINE, time * bounce_amount)
+	end
+
+	go.animate(".", "scale",     go.PLAYBACK_ONCE_FORWARD, step_scale, go.EASING_INSINE, step_time * .5, 0, function()
+		go.animate(".", "scale", go.PLAYBACK_ONCE_FORWARD, scale,      go.EASING_INSINE, step_time * .5)
+	end)
+
+	go.animate(".", "position", go.PLAYBACK_ONCE_FORWARD, new_pos, go.EASING_LINEAR, step_time, 0, function()
+		if socket.gettime() > bounce_sound_delay then
+			bounce_sound_delay = socket.gettime() + 0.04
+			sound.play("/sound#tile_bounce"..math.random(1, 3), {gain = .16, speed = math.random(80, 140) / 100})
+		end
+		if self.bounce_num < bounce_amount - 1 then
+			self.bounce_num = self.bounce_num + 1
+			z = z + 0.001
+			go.set_position(vmath.vector3(new_pos.x, new_pos.y, z))
+			tile_bounce(self, dest, time, bounce_amount)
+		end
 	end)
 end

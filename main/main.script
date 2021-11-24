@@ -10,7 +10,7 @@ G_tiles_max_w, G_tiles_max_h = 10, 16
 -- 1: can be rotated by 90
 -- 2: full random rotation
 
---  1            2               3                   4:
+--  1            2               3                   4
 --  variants:    rotate_type:    ON/OFF_variants:    highlight multiplier:
 theme_data = {
 	{1,           1,              nil,                1 },               -- 1
